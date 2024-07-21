@@ -14,7 +14,6 @@ def action_with_form(
     *,
     permissions: "list[str] | None" = None,
     description: "str | None" = None,
-    help_text: "str | None" = None,
 ):
 
     def decorator(action_function: FunctionType):
@@ -27,6 +26,7 @@ def action_with_form(
                 if "action_form" in request.POST
                 else form_class()
             )
+            form_class_meta = getattr(form_class, "Meta", None)
 
             if form.is_valid():
                 return action_function(modeladmin, request, queryset)
@@ -54,7 +54,7 @@ def action_with_form(
                 "app_verbose_name": app_config.verbose_name,
                 "model_name": model._meta.model_name,
                 "model_verbose_name_plural": model._meta.verbose_name_plural,
-                "action_help_text": help_text,
+                "help_text": getattr(form_class_meta, "help_text", None),
                 "fieldset": Fieldset(form=form, fields=tuple(form.fields.keys())),
             }
 

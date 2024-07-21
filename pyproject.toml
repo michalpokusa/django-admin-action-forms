@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 packages = ["django_admin_action_forms"]
 
 [project]
-name = "django_admin_action_forms"
+name = "django-admin-action-forms"
 version = "0.0.0.dev0"
 description = "..."
 readme = "README.md"

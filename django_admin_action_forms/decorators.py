@@ -34,8 +34,10 @@ def action_with_form(
             app_config = modeladmin.opts.app_config
             model: Model = modeladmin.model
 
+            action = request.POST.getlist("action")[int(request.POST.get("index"))]
+
             context = {
-                "title": modeladmin.get_action(request.POST.get("action"))[2],
+                "title": modeladmin.get_action(action)[2],
                 # For default user tools to work
                 "has_permission": True,
                 "site_url": site.site_url,
@@ -43,7 +45,7 @@ def action_with_form(
                 "is_nav_sidebar_enabled": True,
                 "available_apps": site.get_app_list(request),
                 # Passing default POST values for actions
-                "action": request.POST.get("action"),
+                "action": action,
                 "select_across": request.POST.get("select_across"),
                 "index": request.POST.get("index"),
                 "selected_action": request.POST.getlist("_selected_action"),

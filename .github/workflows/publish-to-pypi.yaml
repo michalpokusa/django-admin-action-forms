@@ -1,0 +1,29 @@
+name: Build and Publish to PyPI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-and-publish-to-pypi:
+    name: Build and Publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: python3 -m pip install --upgrade pip build twine
+
+      - name: Build package
+        run: python3 -m build
+
+      - name: Publish to PyPI
+        env:
+          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+        run: twine upload dist/*

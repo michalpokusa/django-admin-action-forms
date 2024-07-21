@@ -1,0 +1,54 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+
+{% block extrahead %}
+    {{ block.super }}
+
+    {{ form.media }}
+
+    <script src="{% static 'admin/js/core.js' %}"></script>
+    <script src="{% static 'admin/js/cancel.js' %}" async></script>
+
+    <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
+    <link rel="stylesheet" href="{% static 'django_admin_action_forms/css/action_form.css' %}">
+{% endblock %}
+
+
+{% block bodyclass %}{{ block.super }} app-{{ app_label }} model-{{ model_name }} action-{{ action }} action-form {% endblock bodyclass %}
+
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+    <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+    &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_verbose_name }}</a>
+    &rsaquo; <a href="{% url 'admin:'|add:app_label|add:'_'|add:model_name|add:'_changelist' %}">{{ model_verbose_name_plural|capfirst }}</a>
+    &rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+    {% if action_help_text %}
+        <p>{{ action_help_text }}</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% include "admin/includes/fieldset.html" %}
+
+        <input type="hidden" name="action" value="{{ action }}" />
+        <input type="hidden" name="select_across" value="{{ select_across }}" />
+        <input type="hidden" name="index" value="{{ index }}" />
+        {% for item in selected_action %}
+            <input type="hidden" name="_selected_action" value="{{ item }}" />
+        {% endfor %}
+
+        <input type="hidden" name="action_form" />
+
+        <input type="submit" value="{% translate "Proceed" %}">
+        <a href="#" class="button cancel-link">{% translate "Go back" %}</a>
+    </form>
+{% endblock %}

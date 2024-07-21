@@ -1,0 +1,22 @@
+
+/* Action form "Confirm" button */
+.action-form form input[type="submit"] {
+    background: var(--default-button-bg);
+    border-radius: 4px;
+    padding: 10px 15px;
+    color: var(--button-fg);
+}
+.action-form form input[type="submit"]:hover {
+    background: var(--default-button-hover-bg);
+}
+
+
+/* Action form "Cancel" button */
+.action-form form .cancel-link {
+    background: var(--close-button-bg);
+    padding: 10px 15px;
+    margin: 0 0 0 10px;
+}
+.action-form form .cancel-link:hover {
+    background: var(--close-button-hover-bg);
+}

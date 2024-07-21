@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["django_admin_action_forms"]
+
+[project]
+name = "django_admin_action_forms"
+version = "0.0.0.dev0"
+description = "..."
+readme = "README.md"
+keywords = ["django", "admin", "action", "actions", "form", "forms", "args", "arguments", "params", "parameters"]
+
+[project.urls]
+Repository = "https://github.com/michalpokusa/django-admin-action-forms"

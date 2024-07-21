@@ -53,8 +53,11 @@ def action_with_form(
                 "app_label": app_config.label,
                 "app_verbose_name": app_config.verbose_name,
                 "model_name": model._meta.model_name,
+                "model_verbose_name": model._meta.verbose_name,
                 "model_verbose_name_plural": model._meta.verbose_name_plural,
                 "help_text": getattr(form_class_meta, "help_text", None),
+                "list_objects": getattr(form_class_meta, "list_objects", False),
+                "queryset": queryset,
                 "fieldset": Fieldset(form=form, fields=tuple(form.fields.keys())),
             }
 

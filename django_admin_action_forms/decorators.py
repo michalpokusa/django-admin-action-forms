@@ -29,7 +29,7 @@ def action_with_form(
             form_class_meta = getattr(form_class, "Meta", None)
 
             if form.is_valid():
-                return action_function(modeladmin, request, queryset)
+                return action_function(modeladmin, request, queryset, form.cleaned_data)
 
             app_config = modeladmin.opts.app_config
             model: Model = modeladmin.model

@@ -3,13 +3,16 @@
 
 
 {% block extrahead %}
+    <script src="{% static 'admin/js/core.js' %}"></script>
+    <script src="{% url 'admin:jsi18n' %}"></script>
+    <script src="{% static 'admin/js/cancel.js' %}" ></script>
+    <script src="{% static 'admin/js/collapse.js' %}"></script>
+
     {{ block.super }}
 
-    {{ form.media }}
-
-    <script src="{% static 'admin/js/core.js' %}"></script>
-    <script src="{% static 'admin/js/cancel.js' %}" async></script>
-    <script src="{% static 'admin/js/collapse.js' %}"></script>
+    {% if fieldsets %}
+        {{ fieldsets.0.form.media }}
+    {% endif %}
 
     <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
     <link rel="stylesheet" href="{% static 'django_admin_action_forms/css/action_form.css' %}">
@@ -61,6 +64,8 @@
                 </li>
                 {% endfor %}
             </ul>
+        {% else %}
+            <br class="clear">
         {% endif %}
 
         <input type="submit" value="{% translate "Confirm" %}">

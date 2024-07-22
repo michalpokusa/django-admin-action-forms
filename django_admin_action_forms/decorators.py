@@ -4,13 +4,14 @@ from types import FunctionType
 from django.contrib.admin import ModelAdmin, site
 from django.contrib.admin.helpers import Fieldset
 from django.db.models import Model, QuerySet
-from django.forms import Form
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
+from .forms import ActionForm
+
 
 def action_with_form(
-    form_class: "type[Form]",
+    form_class: "type[ActionForm]",
     *,
     permissions: "list[str] | None" = None,
     description: "str | None" = None,

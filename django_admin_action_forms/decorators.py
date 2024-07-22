@@ -2,7 +2,6 @@ from functools import wraps
 from types import FunctionType
 
 from django.contrib.admin import ModelAdmin, site
-from django.contrib.admin.helpers import Fieldset
 from django.db.models import Model, QuerySet
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
@@ -59,7 +58,7 @@ def action_with_form(
                 "help_text": getattr(form_class_meta, "help_text", None),
                 "list_objects": getattr(form_class_meta, "list_objects", False),
                 "queryset": queryset,
-                "fieldset": Fieldset(form=form, fields=tuple(form.fields.keys())),
+                "fieldsets": form.get_fieldsets(),
             }
 
             return TemplateResponse(

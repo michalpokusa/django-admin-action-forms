@@ -9,6 +9,7 @@
 
     <script src="{% static 'admin/js/core.js' %}"></script>
     <script src="{% static 'admin/js/cancel.js' %}" async></script>
+    <script src="{% static 'admin/js/collapse.js' %}"></script>
 
     <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
     <link rel="stylesheet" href="{% static 'django_admin_action_forms/css/action_form.css' %}">
@@ -37,7 +38,9 @@
     <form method="post">
         {% csrf_token %}
 
-        {% include "admin/includes/fieldset.html" %}
+        {% for fieldset in fieldsets %}
+            {% include "admin/includes/fieldset.html" %}
+        {% endfor %}
 
         <input type="hidden" name="action" value="{{ action }}" />
         <input type="hidden" name="select_across" value="{{ select_across }}" />

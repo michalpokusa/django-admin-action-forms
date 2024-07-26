@@ -1,4 +1,6 @@
 // Modified `contrib/admin/static/admin/js/autocomplete.js`
+// Adds `admin_site` and `action_name` to the AJAX request data and changes the meaning of `field_name` to be the
+// ActionForm field that is being autocompleted.
 
 'use strict';
 {

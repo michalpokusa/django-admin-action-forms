@@ -3,10 +3,12 @@ from types import FunctionType
 
 from django.contrib.admin import ModelAdmin, site
 from django.db.models import Model, QuerySet
+from django.forms import Field
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
 
 from .forms import ActionForm
+from .widgets import AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget
 
 
 def action_with_form(
@@ -36,6 +38,24 @@ def action_with_form(
 
             action = request.POST.getlist("action")[int(request.POST.get("index"))]
 
+            for field_name, field in form.fields.items():
+                field: Field
+
+                # Additional attributes required for autocomplete fields
+                if isinstance(
+                    field.widget,
+                    (AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget),
+                ):
+                    field.widget.attrs.update(
+                        {
+                            "data-admin-site": modeladmin.admin_site.name,
+                            "data-app-label": model._meta.app_label,
+                            "data-model-name": model._meta.model_name,
+                            "data-action-name": action,
+                            "data-field-name": field_name,
+                        }
+                    )
+
             context = {
                 "title": modeladmin.get_action(action)[2],
                 # For default user tools to work
@@ -64,6 +84,8 @@ def action_with_form(
             return TemplateResponse(
                 request, "admin/django_admin_action_forms/action_form.html", context
             )
+
+        setattr(wrapper, "form_class", form_class)
 
         if permissions is not None:
             setattr(wrapper, "allowed_permissions", permissions)

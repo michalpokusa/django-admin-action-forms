@@ -9,6 +9,8 @@ from django.contrib.admin.widgets import (
 from .widgets import (
     FilterHorizontalWidget,
     FilterVerticalWidget,
+    AutocompleteModelChoiceWidget,
+    AutocompleteModelMultiChoiceWidget,
 )
 
 
@@ -17,6 +19,7 @@ class ActionForm(forms.Form):
     def __init_subclass__(cls):
 
         meta: ActionForm.Meta = getattr(cls, "Meta", None)
+        autocomplete_fields = getattr(meta, "autocomplete_fields", [])
         filter_horizontal = getattr(meta, "filter_horizontal", [])
         filter_vertical = getattr(meta, "filter_vertical", [])
 
@@ -39,6 +42,15 @@ class ActionForm(forms.Form):
                     is_stacked=True,
                     choices=field.choices,
                 )
+
+            if field_name in autocomplete_fields:
+                if isinstance(field, forms.ModelChoiceField):
+                    field.widget = AutocompleteModelChoiceWidget()
+
+                if isinstance(field, forms.ModelMultipleChoiceField):
+                    field.widget = AutocompleteModelMultiChoiceWidget()
+
+            field.widget.is_required = field.required
 
         return super().__init_subclass__()
 
@@ -79,6 +91,7 @@ class ActionForm(forms.Form):
         fields: "list[str]"
         fieldsets: "list[tuple[str|None, dict[str, int]]]"
 
+        autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
 

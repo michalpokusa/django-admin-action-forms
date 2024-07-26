@@ -6,8 +6,41 @@ from django.contrib.admin.widgets import (
     AdminSplitDateTime,
 )
 
+from .widgets import (
+    FilterHorizontalWidget,
+    FilterVerticalWidget,
+)
+
 
 class ActionForm(forms.Form):
+
+    def __init_subclass__(cls):
+
+        meta: ActionForm.Meta = getattr(cls, "Meta", None)
+        filter_horizontal = getattr(meta, "filter_horizontal", [])
+        filter_vertical = getattr(meta, "filter_vertical", [])
+
+        fields = {
+            **cls.base_fields,
+            **cls.declared_fields,
+        }
+
+        for field_name, field in fields.items():
+            if field_name in filter_horizontal:
+                field.widget = FilterHorizontalWidget(
+                    verbose_name=field.label,
+                    is_stacked=False,
+                    choices=field.choices,
+                )
+
+            if field_name in filter_vertical:
+                field.widget = FilterVerticalWidget(
+                    verbose_name=field.label,
+                    is_stacked=True,
+                    choices=field.choices,
+                )
+
+        return super().__init_subclass__()
 
     def get_fieldsets(self) -> "list[Fieldset]":
         meta: ActionForm.Meta = getattr(self, "Meta", None)
@@ -45,6 +78,9 @@ class ActionForm(forms.Form):
 
         fields: "list[str]"
         fieldsets: "list[tuple[str|None, dict[str, int]]]"
+
+        filter_horizontal: "list[str]"
+        filter_vertical: "list[str]"
 
 
 class AdminActionForm(ActionForm):

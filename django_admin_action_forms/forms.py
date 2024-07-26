@@ -1,5 +1,10 @@
 from django import forms
 from django.contrib.admin.helpers import Fieldset
+from django.contrib.admin.widgets import (
+    AdminDateWidget,
+    AdminTimeWidget,
+    AdminSplitDateTime,
+)
 
 
 class ActionForm(forms.Form):
@@ -40,3 +45,28 @@ class ActionForm(forms.Form):
 
         fields: "list[str]"
         fieldsets: "list[tuple[str|None, dict[str, int]]]"
+
+
+class AdminActionForm(ActionForm):
+
+    def __init_subclass__(cls):
+        fields = {
+            **cls.base_fields,
+            **cls.declared_fields,
+        }
+
+        for field in fields.values():
+
+            if isinstance(field, forms.DateField):
+                field.widget = AdminDateWidget()
+                continue
+
+            if isinstance(field, forms.TimeField):
+                field.widget = AdminTimeWidget()
+                continue
+
+            if isinstance(field, forms.SplitDateTimeField):
+                field.widget = AdminSplitDateTime()
+                continue
+
+        return super().__init_subclass__()

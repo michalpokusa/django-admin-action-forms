@@ -1,7 +1,7 @@
 from functools import wraps
 from types import FunctionType
 
-from django.contrib.admin import ModelAdmin, site
+from django.contrib.admin import ModelAdmin
 from django.db.models import Model, QuerySet
 from django.forms import Field
 from django.http import HttpRequest
@@ -60,10 +60,10 @@ def action_with_form(
                 "title": modeladmin.get_action(action)[2],
                 # For default user tools to work
                 "has_permission": True,
-                "site_url": site.site_url,
+                "site_url": modeladmin.admin_site.site_url,
                 # For default sidebar to work
                 "is_nav_sidebar_enabled": True,
-                "available_apps": site.get_app_list(request),
+                "available_apps": modeladmin.admin_site.get_app_list(request),
                 # Passing default POST values for actions
                 "action": action,
                 "select_across": request.POST.get("select_across"),

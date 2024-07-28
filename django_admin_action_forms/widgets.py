@@ -2,10 +2,36 @@ import json
 from typing import Any
 
 from django.conf import settings
-from django.contrib.admin.widgets import FilteredSelectMultiple, get_select2_language
 from django.forms import Select, SelectMultiple, Media, Widget
 from django.urls import reverse
 from django.utils.html import format_html
+
+# Django 4.1.x and above
+try:
+    from django.contrib.admin.widgets import (
+        FilteredSelectMultiple,
+        get_select2_language,
+    )
+# Backwards compatibility for Django 3.2.x
+except ImportError:
+    from django.contrib.admin.widgets import (
+        FilteredSelectMultiple,
+        SELECT2_TRANSLATIONS,
+    )
+    from django.utils.translation import get_language
+
+    # Copied django.contrib.admin.widgets.get_select2_language
+    def get_select2_language():
+        lang_code = get_language()
+        supported_code = SELECT2_TRANSLATIONS.get(lang_code)
+        if supported_code is None and lang_code is not None:
+            # If 'zh-hant-tw' is not supported, try subsequent language codes i.e.
+            # 'zh-hant' and 'zh'.
+            i = None
+            while (i := lang_code.rfind("-", 0, i)) > -1:
+                if supported_code := SELECT2_TRANSLATIONS.get(lang_code[:i]):
+                    return supported_code
+        return supported_code
 
 
 class RenderInsideDivMixin(Widget):

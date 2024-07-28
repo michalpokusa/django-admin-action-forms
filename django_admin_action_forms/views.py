@@ -58,12 +58,10 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # AdminSite
-        admin_site: "AdminSite | None" = next(
-            filter(
-                lambda site: getattr(site, "name") == GET_admin_site, sites.all_sites
-            ),
+        admin_site: "AdminSite | None" = [
+            *[site for site in sites.all_sites if site.name == GET_admin_site],
             None,
-        )
+        ][0]
         if admin_site is None:
             return HttpResponseBadRequest()
 
@@ -74,7 +72,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # Model -> ModelAdmin
-        model_admin: ModelAdmin = admin_site.get_model_admin(model)
+        model_admin: ModelAdmin = admin_site._registry[model]
 
         if not model_admin.has_view_permission(request):
             return HttpResponseForbidden()

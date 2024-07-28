@@ -1,9 +1,18 @@
-from django import forms
 from django.contrib.admin.helpers import Fieldset
 from django.contrib.admin.widgets import (
     AdminDateWidget,
     AdminTimeWidget,
     AdminSplitDateTime,
+)
+from django.forms import (
+    Form,
+    ChoiceField,
+    MultipleChoiceField,
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+    DateField,
+    TimeField,
+    SplitDateTimeField,
 )
 
 from .widgets import (
@@ -14,7 +23,7 @@ from .widgets import (
 )
 
 
-class ActionForm(forms.Form):
+class ActionForm(Form):
 
     def __init_subclass__(cls):
 
@@ -44,10 +53,10 @@ class ActionForm(forms.Form):
                 )
 
             if field_name in autocomplete_fields:
-                if isinstance(field, forms.ModelChoiceField):
+                if isinstance(field, (ChoiceField, ModelChoiceField)):
                     field.widget = AutocompleteModelChoiceWidget()
 
-                if isinstance(field, forms.ModelMultipleChoiceField):
+                if isinstance(field, (MultipleChoiceField, ModelMultipleChoiceField)):
                     field.widget = AutocompleteModelMultiChoiceWidget()
 
             field.widget.is_required = field.required
@@ -106,15 +115,15 @@ class AdminActionForm(ActionForm):
 
         for field in fields.values():
 
-            if isinstance(field, forms.DateField):
+            if isinstance(field, DateField):
                 field.widget = AdminDateWidget()
                 continue
 
-            if isinstance(field, forms.TimeField):
+            if isinstance(field, TimeField):
                 field.widget = AdminTimeWidget()
                 continue
 
-            if isinstance(field, forms.SplitDateTimeField):
+            if isinstance(field, SplitDateTimeField):
                 field.widget = AdminSplitDateTime()
                 continue
 

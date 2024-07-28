@@ -1,8 +1,14 @@
 from django.apps import apps
-from django.contrib.admin import ModelAdmin, sites
+from django.contrib.admin import AdminSite, ModelAdmin, sites
+from django.core.paginator import Paginator
 from django.db.models import Model
 from django.db.models import QuerySet
-from django.forms import ModelChoiceField, ModelMultipleChoiceField
+from django.forms import (
+    ChoiceField,
+    MultipleChoiceField,
+    ModelChoiceField,
+    ModelMultipleChoiceField,
+)
 from django.http import (
     HttpRequest,
     HttpResponseForbidden,
@@ -52,7 +58,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # AdminSite
-        admin_site = next(
+        admin_site: "AdminSite | None" = next(
             filter(
                 lambda site: getattr(site, "name") == GET_admin_site, sites.all_sites
             ),
@@ -86,31 +92,56 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # ActionForm -> Field
-        field: "ModelChoiceField | ModelMultipleChoiceField" = {
+        field = {
             **action_form.base_fields,
             **action_form.declared_fields,
         }.get(GET_field_name)
 
-        # Field -> QuerySet
-        queryset: "QuerySet[Model]" = field.queryset
+        if isinstance(field, (ChoiceField, MultipleChoiceField)):
 
-        queryset, may_have_duplicates = model_admin.get_search_results(
-            request, queryset, GET_term
-        )
+            # Field -> Choices
+            choices = field.choices
 
-        if may_have_duplicates:
-            queryset = queryset.distinct()
+            choices = sorted(
+                [choice for choice in choices if GET_term.lower() in choice[1].lower()],
+                key=lambda choice: choice[1],
+            )
 
-        if not queryset.ordered:
-            queryset = queryset.order_by("pk")
+            # Choices -> Paginator & Page
+            paginator = Paginator(choices, self.paginate_by)
+            page = paginator.get_page(GET_page)
 
-        # QuerySet -> Paginator & Page
-        paginator = model_admin.get_paginator(request, queryset, self.paginate_by)
-        page = paginator.get_page(GET_page)
+            return JsonResponse(
+                {
+                    "results": [
+                        {"id": str(value), "text": str(label)} for value, label in page
+                    ],
+                    "pagination": {"more": page.has_next()},
+                }
+            )
 
-        return JsonResponse(
-            {
-                "results": [{"id": str(obj.pk), "text": str(obj)} for obj in page],
-                "pagination": {"more": page.has_next()},
-            }
-        )
+        if isinstance(field, (ModelChoiceField, ModelMultipleChoiceField)):
+
+            # Field -> QuerySet
+            queryset: "QuerySet[Model]" = field.queryset
+
+            queryset, may_have_duplicates = model_admin.get_search_results(
+                request, queryset, GET_term
+            )
+
+            if may_have_duplicates:
+                queryset = queryset.distinct()
+
+            if not queryset.ordered:
+                queryset = queryset.order_by("pk")
+
+            # QuerySet -> Paginator & Page
+            paginator = model_admin.get_paginator(request, queryset, self.paginate_by)
+            page = paginator.get_page(GET_page)
+
+            return JsonResponse(
+                {
+                    "results": [{"id": str(obj.pk), "text": str(obj)} for obj in page],
+                    "pagination": {"more": page.has_next()},
+                }
+            )

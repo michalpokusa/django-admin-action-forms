@@ -6,6 +6,7 @@ from django.contrib.admin.widgets import (
 )
 from django.forms import (
     Form,
+    Field,
     ChoiceField,
     MultipleChoiceField,
     ModelChoiceField,
@@ -32,7 +33,7 @@ class ActionForm(Form):
         filter_horizontal = getattr(meta, "filter_horizontal", [])
         filter_vertical = getattr(meta, "filter_vertical", [])
 
-        fields = {
+        fields: "dict[str, Field]" = {
             **cls.base_fields,
             **cls.declared_fields,
         }
@@ -54,10 +55,14 @@ class ActionForm(Form):
 
             if field_name in autocomplete_fields:
                 if isinstance(field, (ChoiceField, ModelChoiceField)):
-                    field.widget = AutocompleteModelChoiceWidget()
+                    field.widget = AutocompleteModelChoiceWidget(
+                        choices=field.choices,
+                    )
 
                 if isinstance(field, (MultipleChoiceField, ModelMultipleChoiceField)):
-                    field.widget = AutocompleteModelMultiChoiceWidget()
+                    field.widget = AutocompleteModelMultiChoiceWidget(
+                        choices=field.choices,
+                    )
 
             field.widget.is_required = field.required
 

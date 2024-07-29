@@ -1,2 +1,2 @@
-recursive-include django_admin_actions_args/static *.css
+recursive-include django_admin_actions_args/static *.css *.js
 recursive-include django_admin_actions_args/templates *.html

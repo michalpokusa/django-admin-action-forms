@@ -103,7 +103,7 @@ class ActionForm(Form):
         help_text: str
 
         fields: "list[str]"
-        fieldsets: "list[tuple[str|None, dict[str, int]]]"
+        fieldsets: "list[tuple[str|None, dict[str, list[str]]]]"
 
         autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"

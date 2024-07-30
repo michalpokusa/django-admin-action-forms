@@ -2,6 +2,17 @@ name: Build and Publish to PyPI
 
 on:
   workflow_dispatch:
+    inputs:
+      package_version:
+        description: 'Package version'
+        default: '0.0.0'
+        required: true
+        type: string
+      publish:
+        description: 'Publish to PyPI'
+        default: false
+        required: true
+        type: boolean
 
 jobs:
   build-and-publish-to-pypi:
@@ -20,10 +31,13 @@ jobs:
         run: python3 -m pip install --upgrade pip build twine
 
       - name: Build package
-        run: python3 -m build
+        env:
+          PACKAGE_VERSION: ${{ github.event.inputs.package_version }}
+        run: bash build-package.sh
 
       - name: Publish to PyPI
+        if: ${{ github.event.inputs.publish == 'true' }}
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload dist/*
+        run: twine upload --non-interactive dist/*

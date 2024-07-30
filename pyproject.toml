@@ -8,9 +8,12 @@ packages = ["django_admin_action_forms"]
 [project]
 name = "django-admin-action-forms"
 version = "0.0.0.dev0"
-description = "..."
+description = "Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms."
 readme = "README.md"
-keywords = ["django", "admin", "action", "actions", "form", "forms", "args", "arguments", "params", "parameters"]
+keywords = ["django", "admin", "action", "actions", "form", "forms", "pass", "intermediate", "args", "arguments", "params", "parameters"]
+
+[project.dependencies]
+django = ">=3.2"
 
 [project.urls]
 Repository = "https://github.com/michalpokusa/django-admin-action-forms"

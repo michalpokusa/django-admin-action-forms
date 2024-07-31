@@ -28,7 +28,13 @@ jobs:
           python-version: 3.x
 
       - name: Install dependencies
-        run: python3 -m pip install --upgrade pip build twine
+        run: |
+          apt update
+          apt install -y gettext
+          python3 -m pip install --upgrade pip django build twine
+
+      - name: Compile .po files to .mo
+        run: django-admin compilemessages --ignore "**/django/**"
 
       - name: Build package
         env:

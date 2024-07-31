@@ -1,3 +1,3 @@
-recursive-include django_admin_actions_args/locale *.po *.mo
-recursive-include django_admin_actions_args/static *.css *.js
-recursive-include django_admin_actions_args/templates *.html
+recursive-include django_admin_action_forms/locale *.po *.mo
+recursive-include django_admin_action_forms/static *.css *.js
+recursive-include django_admin_action_forms/templates *.html

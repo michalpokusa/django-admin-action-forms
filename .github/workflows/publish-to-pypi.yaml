@@ -29,8 +29,8 @@ jobs:
 
       - name: Install dependencies
         run: |
-          apt update
-          apt install -y gettext
+          sudo apt update
+          sudo apt install -y gettext
           python3 -m pip install --upgrade pip django build twine
 
       - name: Compile .po files to .mo

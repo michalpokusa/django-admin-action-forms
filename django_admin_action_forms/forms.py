@@ -7,8 +7,6 @@ from django.contrib.admin.widgets import (
 from django.forms import (
     Form,
     Field,
-    ChoiceField,
-    MultipleChoiceField,
     ModelChoiceField,
     ModelMultipleChoiceField,
     DateField,
@@ -40,26 +38,28 @@ class ActionForm(Form):
 
         for field_name, field in fields.items():
             if field_name in filter_horizontal:
-                field.widget = FilterHorizontalWidget(
-                    verbose_name=field.label,
-                    is_stacked=False,
-                    choices=field.choices,
-                )
+                if isinstance(field, ModelMultipleChoiceField):
+                    field.widget = FilterHorizontalWidget(
+                        verbose_name=field.label,
+                        is_stacked=False,
+                        choices=field.choices,
+                    )
 
             if field_name in filter_vertical:
-                field.widget = FilterVerticalWidget(
-                    verbose_name=field.label,
-                    is_stacked=True,
-                    choices=field.choices,
-                )
+                if isinstance(field, ModelMultipleChoiceField):
+                    field.widget = FilterVerticalWidget(
+                        verbose_name=field.label,
+                        is_stacked=True,
+                        choices=field.choices,
+                    )
 
             if field_name in autocomplete_fields:
-                if isinstance(field, (ChoiceField, ModelChoiceField)):
+                if isinstance(field, ModelChoiceField):
                     field.widget = AutocompleteModelChoiceWidget(
                         choices=field.choices,
                     )
 
-                if isinstance(field, (MultipleChoiceField, ModelMultipleChoiceField)):
+                if isinstance(field, ModelMultipleChoiceField):
                     field.widget = AutocompleteModelMultiChoiceWidget(
                         choices=field.choices,
                     )

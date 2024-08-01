@@ -213,11 +213,7 @@ Similar to
 <a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal">
     <code>ModelAdmin.filter_horizontal</code>
 </a>.
-Sets fields that should use horizontal filter widget.
-
-In addition to `ModelChoiceField` and `ModelMultipleChoiceField`, also works with normal
-`ChoiceField` and `MultipleChoiceField` fields.
-
+Sets fields that should use horizontal filter widget. It should be a list of field names.
 
 #### filter_vertical
 
@@ -227,10 +223,7 @@ Similar to
 <a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_vertical">
     <code>ModelAdmin.filter_vertical</code>
 </a>.
-Sets fields that should use vertical filter widget.
-
-In addition to `ModelChoiceField` and `ModelMultipleChoiceField`, also works with normal
-`ChoiceField` and `MultipleChoiceField` fields.
+Sets fields that should use vertical filter widget. It should be a list of field names.
 
 #### autocomplete_fields
 
@@ -243,6 +236,3 @@ Similar to
     <code>ModelAdmin.autocomplete_fields</code>
 </a>.
 Sets fields that should use autocomplete widget. It should be a list of field names.
-
-In addition to `ModelChoiceField` and `ModelMultipleChoiceField`, autocomplete also works with normal
-`ChoiceField` and `MultipleChoiceField` fields.

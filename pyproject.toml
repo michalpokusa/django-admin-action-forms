@@ -10,7 +10,39 @@ name = "django-admin-action-forms"
 version = "%PACKAGE_VERSION%"
 description = "Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms."
 readme = "README.md"
+license = {file = "LICENSE"}
 keywords = ["django", "admin", "action", "actions", "form", "forms", "pass", "intermediate", "args", "arguments", "params", "parameters"]
+authors = [
+  {name = "Michał Pokusa"},
+]
+maintainers = [
+  {name = "Michał Pokusa"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Web Environment",
+    "Framework :: Django :: 3.2",
+    "Framework :: Django :: 4.0",
+    "Framework :: Django :: 4.1",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 4",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 dependencies = ["django>=3.2"]
 
 [project.urls]

@@ -6,6 +6,7 @@ from django.db.models import Model, QuerySet
 from django.forms import Field
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
+from django.apps import AppConfig
 
 from .forms import ActionForm
 from .widgets import AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget
@@ -33,7 +34,7 @@ def action_with_form(
             if form.is_valid():
                 return action_function(modeladmin, request, queryset, form.cleaned_data)
 
-            app_config = modeladmin.opts.app_config
+            app_config: AppConfig = modeladmin.opts.app_config
             model: Model = modeladmin.model
 
             action = request.POST.getlist("action")[int(request.POST.get("index"))]

@@ -59,13 +59,13 @@ class ActionFormAutocompleteJsonView(BaseListView):
         if admin_site is None:
             return HttpResponseBadRequest()
 
-        # AdminSite -> Model
+        # Model
         try:
             model = apps.get_model(GET_app_label, GET_model_name)
         except LookupError:
             return HttpResponseBadRequest()
 
-        # Model -> ModelAdmin
+        # AdminSite & Model -> ModelAdmin
         model_admin: "ModelAdmin | None" = admin_site._registry.get(model, None)
 
         if model_admin is None:

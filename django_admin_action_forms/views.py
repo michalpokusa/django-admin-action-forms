@@ -66,7 +66,10 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # Model -> ModelAdmin
-        model_admin: ModelAdmin = admin_site._registry[model]
+        model_admin: "ModelAdmin | None" = admin_site._registry.get(model, None)
+
+        if model_admin is None:
+            return HttpResponseBadRequest()
 
         if not model_admin.has_view_permission(request):
             return HttpResponseForbidden()

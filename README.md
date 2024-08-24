@@ -48,35 +48,48 @@ Simple and powerful!
 
 1. Install using ``pip``:
 
-```bash
-$ pip3 install django-admin-action-forms
-```
+    ```bash
+    $ pip3 install django-admin-action-forms
+    ```
 
 
 2. Add `'django_admin_action_forms'` to your `INSTALLED_APPS` setting.
-```python
-INSTALLED_APPS = [
-    ...
-    'django_admin_action_forms',
-]
-```
+    ```python
+    INSTALLED_APPS = [
+        ...
+        'django_admin_action_forms',
+    ]
+    ```
 
 3. Include `'django_admin_action_forms.urls'` in your `urls.py` file.
+   This is needed only if you want to use autocomplete.
 
-    **Required** if you want to use `autocomplete_fields` in your actions' forms.
+    If you are want to include them under same path as admin site, make sure to place them **before** the admin urls.
+
+    ```python
+    from django.contrib import admin
+    from django.urls import path, include
 
 
-```python
-from django.contrib import admin
-from django.urls import path, include
+    urlpatterns = [
+        path("admin/action-forms/", include("django_admin_action_forms.urls")),
+        path("admin/", admin.site.urls),
+        ...
+    ]
+    ```
+    ...or include them under any other path.
+
+    ```python
+    from django.contrib import admin
+    from django.urls import path, include
 
 
-urlpatterns = [
-    path("admin-action-forms/", include("django_admin_action_forms.urls")),
-    path("admin/", admin.site.urls),
-    ...
-]
-```
+    urlpatterns = [
+        path("admin/", admin.site.urls),
+        ...
+        path("any/other/path/", include("django_admin_action_forms.urls")),
+    ]
+    ```
 
 ## ✏️ Example
 

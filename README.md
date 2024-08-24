@@ -61,7 +61,7 @@ INSTALLED_APPS = [
 ]
 ```
 
-1. Include `'django_admin_action_forms.urls'` in your `urls.py` file.
+3. Include `'django_admin_action_forms.urls'` in your `urls.py` file.
 
     **Required** if you want to use `autocomplete_fields` in your actions' forms.
 
@@ -169,7 +169,7 @@ Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm
 
 In addition to `ActionForm`, it replaces default text inputs for `DateField`, `TimeField`, `SplitDateTimeField` with respective admin widgets.
 
-Most of the this is a class you want to subclass when creating action forms.
+Most of the time this is a class you want to subclass when creating action forms.
 
 ### ActionForm.Meta
 

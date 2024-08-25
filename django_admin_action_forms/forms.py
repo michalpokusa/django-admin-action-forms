@@ -84,6 +84,15 @@ class ActionForm(Form):
         elif hasattr(meta, "fields"):
             fields = meta.fields
 
+        if fields:
+            some_fields_in_same_line = any(
+                isinstance(field_name, (list, tuple)) for field_name in fields or []
+            )
+
+            if some_fields_in_same_line:
+                fieldsets = [(None, {"fields": fields})]
+                fields = None
+
         if fieldsets is not None:
             return [
                 Fieldset(
@@ -126,14 +135,14 @@ class ActionForm(Form):
         list_objects: bool
         help_text: str
 
-        fields: "list[str]"
+        fields: "list[str | tuple[str, ...]]"
         fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]"
 
         autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
 
-        def get_fields(self, request: HttpRequest) -> "list[str]":
+        def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]]":
             return self.fields
 
         def get_fieldsets(

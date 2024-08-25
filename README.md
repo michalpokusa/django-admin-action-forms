@@ -61,8 +61,7 @@ Simple and powerful!
     ]
     ```
 
-3. Include `'django_admin_action_forms.urls'` in your `urls.py` file.
-   This is needed only if you want to use autocomplete.
+3. Include `'django_admin_action_forms.urls'` in your `urls.py` file. This is needed only if you want to use autocomplete.
 
     If you are want to include them under same path as admin site, make sure to place them **before** the admin urls.
 
@@ -169,24 +168,70 @@ class OrderAdmin(admin.ModelAdmin):
 
 #### <code>@action_with_form(<i>form_class, *, permissions=None, description=None</i>)</code>
 
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/actions/#the-action-decorator">
+    <code>@admin.action</code>
+</a>
+
 Decorator that can be used instead of `@admin.action` to create action with custom form.
-Functions decorated with `@action_with_form` should accept additional argument `data` that will contain cleaned data from the form.
+Functions decorated with `@action_with_form` should accept additional argument `data` that will contain cleaned data from the form, `permissions` and `description` work the same.
+
+```python
+@action_with_form(
+    CustomActionForm,
+    description="Description of the action",
+)
+def custom_action(self, request, queryset, data):
+    ...
+```
 
 ### ActionForm
 
-Base class for creating action forms, it replaces field widgets
-
-Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
+Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
 ### AdminActionForm
 
 In addition to `ActionForm`, it replaces default text inputs for `DateField`, `TimeField`, `SplitDateTimeField` with respective admin widgets.
 
-Most of the time this is a class you want to subclass when creating action forms.
+Most of the time this is a class you want to subclass when creating custom action forms.
+
+```python
+class CustomActionForm(AdminActionForm):
+
+    field1 = forms.ChoiceField(
+        label="Field 1",
+        choices=[(1, "Option 1"), (2, "Option 2"), (3, "Option 3")],
+    )
+    field2 = forms.CharField(
+        label="Field 2",
+        required=False,
+        widget=forms.TextInput
+    )
+    field3 = forms.DateField(label="Field 3", initial="2024-07-15")
+
+    ...
+```
+
 
 ### ActionForm.Meta
 
-Additional configuration for action forms. It works similarly to some `ModelAdmin` options.
+> Works similar to some <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#modeladmin-options">
+    <code>ModelAdmin</code> options
+</a>
+
+Additional configuration for action forms. It can be use to customize the layout of the form, add help text or display a list of objects that will be affected by the action.
+
+```python
+class CustomActionForm(AdminActionForm):
+
+    ...
+
+    class Meta:
+        list_objects = True
+        help_text = "This is a help text"
+        ...
+```
+
+Below you can find all available options:
 
 #### list_objects
 
@@ -195,57 +240,154 @@ Default: `False`
 If `True`, the intermediate page will display a list of objects that will be affected by the action similarly
 to the intermediate page for built-in `delete_selected` action.
 
+```python
+list_objects = True
+```
+
 #### help_text
 
 Default: `None`
 
 Text displayed between the form and the list of objects or form in the intermediate page.
 
+```python
+help_text = "This text will be displayed between the form and the list of objects"
+```
+
 #### fields
 
-Works similar to
-<a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fields">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fields">
     <code>ModelAdmin.fields</code>
-</a>.
+</a>
 
 Specifies the fields that should be displayed in the form. If `fieldsets` is provided, `fields` will be ignored.
 
+
+```python
+fields = ["field1", ("field2", "field3")]
+```
+
+#### get_fields(request)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fields">
+    <code>ModelAdmin.get_fields()</code>
+</a>
+
+Method that can be used to dynamically determine fields that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fields, as described above in the [`fields`](#fields).
+
+```python
+def get_fields(self, request):
+    if request.user.is_superuser:
+        return ["field1", "field2", "field3"]
+    else:
+        return ["field1", "field2"]
+```
+
+
 #### fieldsets
 
-Works similar to
-<a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets">
     <code>ModelAdmin.fieldsets</code>
 </a>
+
 If both `fields` and `fieldsets` are provided, `fieldsets` will be used.
+
+```python
+fieldsets = [
+    (
+        None,
+        {
+            "fields": ["field1", "field2", ("field3", "field4")],
+        },
+    ),
+    (
+        "Fieldset 2",
+        {
+            "classes": ["collapse"],
+            "fields": ["field5", ("field6", "field7")],
+            "description": "This is a description for fieldset 2",
+        },
+    ),
+]
+```
+
+#### get_fieldsets(request)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fieldsets">
+    <code>ModelAdmin.get_fieldsets()</code>
+</a>
+
+Method that can be used to dynamically determine fieldsets that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fieldsets, as described above in the [`fieldsets`](#fieldsets).
+
+```python
+def get_fieldsets(self, request):
+    if request.user.is_superuser:
+        return [
+            (
+                None,
+                {
+                    "fields": ["field1", "field2", ("field3", "field4")],
+                },
+            ),
+            (
+                "Fieldset 2",
+                {
+                    "classes": ["collapse"],
+                    "fields": ["field5", ("field6", "field7")],
+                    "description": "This is a description for fieldset 2",
+                },
+            ),
+        ]
+    else:
+        return [
+            (
+                None,
+                {
+                    "fields": ["field1", "field2", ("field3", "field4")],
+                },
+            ),
+        ]
+```
 
 #### filter_horizontal
 
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal">
+    <code>ModelAdmin.filter_horizontal</code>
+</a>
+
 Default: `None`
 
-Similar to
-<a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal">
-    <code>ModelAdmin.filter_horizontal</code>
-</a>.
 Sets fields that should use horizontal filter widget. It should be a list of field names.
+
+```python
+filter_horizontal = ["field1", "field2"]
+```
 
 #### filter_vertical
 
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_vertical">
+    <code>ModelAdmin.filter_vertical</code>
+</a>
+
 Default: `None`
 
-Similar to
-<a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_vertical">
-    <code>ModelAdmin.filter_vertical</code>
-</a>.
 Sets fields that should use vertical filter widget. It should be a list of field names.
+
+```python
+filter_vertical = ["field1", "field2"]
+```
 
 #### autocomplete_fields
 
-> In order for autocomplete to you have to include `'django_admin_action_forms.urls'` in your `urls.py` file.
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields">
+    <code>ModelAdmin.autocomplete_fields</code>
+</a>
 
 Default: `None`
 
-Similar to
-<a href="https://docs.djangoproject.com/en/5.0/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields">
-    <code>ModelAdmin.autocomplete_fields</code>
-</a>.
+
 Sets fields that should use autocomplete widget. It should be a list of field names.
+
+```python
+autocomplete_fields = ["field1", "field2"]
+```

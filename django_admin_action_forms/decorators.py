@@ -29,6 +29,8 @@ def action_with_form(
                 if "action_form" in request.POST
                 else form_class()
             )
+            form._remove_excluded_fields(request)
+
             form_class_meta = getattr(form_class, "Meta", None)
 
             if form.is_valid():
@@ -79,7 +81,7 @@ def action_with_form(
                 "help_text": getattr(form_class_meta, "help_text", None),
                 "list_objects": getattr(form_class_meta, "list_objects", False),
                 "queryset": queryset,
-                "fieldsets": form.get_fieldsets(),
+                "fieldsets": form._get_fieldsets_for_context(request),
             }
 
             return TemplateResponse(

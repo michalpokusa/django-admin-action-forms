@@ -13,6 +13,7 @@ from django.forms import (
     TimeField,
     SplitDateTimeField,
 )
+from django.http import HttpRequest
 
 from .widgets import (
     FilterHorizontalWidget,
@@ -68,10 +69,22 @@ class ActionForm(Form):
 
         return super().__init_subclass__()
 
-    def get_fieldsets(self) -> "list[Fieldset]":
+    def _get_fieldsets_for_context(self, request: HttpRequest) -> "list[Fieldset]":
         meta: ActionForm.Meta = getattr(self, "Meta", None)
 
-        if hasattr(meta, "fieldsets"):
+        fieldsets = None
+        fields = None
+
+        if hasattr(meta, "get_fieldsets") and callable(meta.get_fieldsets):
+            fieldsets = meta.get_fieldsets(request)
+        elif hasattr(meta, "fieldsets"):
+            fieldsets = meta.fieldsets
+        elif hasattr(meta, "get_fields") and callable(meta.get_fields):
+            fields = meta.get_fields(request)
+        elif hasattr(meta, "fields"):
+            fields = meta.fields
+
+        if fieldsets is not None:
             return [
                 Fieldset(
                     form=self,
@@ -80,34 +93,53 @@ class ActionForm(Form):
                     classes=tuple(fieldset[1].get("classes", [])),
                     description=fieldset[1].get("description", None),
                 )
-                for fieldset in meta.fieldsets
+                for fieldset in fieldsets
             ]
 
-        if hasattr(meta, "fields"):
-            return [
-                Fieldset(
-                    form=self,
-                    fields=tuple(getattr(meta, "fields", [])),
-                )
-            ]
+        if fields is not None:
+            return [Fieldset(form=self, fields=tuple(fields))]
 
-        return [
-            Fieldset(
-                form=self,
-                fields=tuple(self.fields.keys()),
-            )
-        ]
+        return [Fieldset(form=self, fields=tuple(self.fields.keys()))]
+
+    def _get_included_fields(self, request: HttpRequest) -> "set[str]":
+        field_names: "set[str]" = set()
+        for fieldset in self._get_fieldsets_for_context(request):
+            for field in fieldset.fields:
+                if isinstance(field, (list, tuple)):
+                    field_names.update(field)
+                else:
+                    field_names.add(field)
+
+        return field_names
+
+    def _get_excluded_fields(self, request: HttpRequest) -> "set[str]":
+        all_fields = set(self.fields.keys())
+        included_fields = self._get_included_fields(request)
+
+        return all_fields.difference(included_fields)
+
+    def _remove_excluded_fields(self, request: HttpRequest):
+        for field_name in self._get_excluded_fields(request):
+            self.fields.pop(field_name)
 
     class Meta:
         list_objects: bool
         help_text: str
 
         fields: "list[str]"
-        fieldsets: "list[tuple[str|None, dict[str, list[str]]]]"
+        fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]"
 
         autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
+
+        def get_fields(self, request: HttpRequest) -> "list[str]":
+            return self.fields
+
+        def get_fieldsets(
+            self, request: HttpRequest
+        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]":
+            return self.fieldsets
 
 
 class AdminActionForm(ActionForm):

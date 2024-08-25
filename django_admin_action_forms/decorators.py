@@ -81,6 +81,7 @@ def action_with_form(
                 "help_text": getattr(form_class_meta, "help_text", None),
                 "list_objects": getattr(form_class_meta, "list_objects", False),
                 "queryset": queryset,
+                "form": form,
                 "fieldsets": form._get_fieldsets_for_context(request),
             }
 

@@ -8,9 +8,7 @@
     <script src="{% static 'admin/js/cancel.js' %}" ></script>
     <script src="{% static 'admin/js/collapse.js' %}"></script>
 
-    {% if fieldsets %}
-        {{ fieldsets.0.form.media }}
-    {% endif %}
+    {{ form.media }}
 
     <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
     <link rel="stylesheet" href="{% static 'django_admin_action_forms/css/action_form.css' %}">
@@ -56,6 +54,8 @@
 
     <form method="post">
         {% csrf_token %}
+
+        {{ form.non_field_errors }}
 
         {% for fieldset in fieldsets %}
             {% include "admin/includes/fieldset.html" %}

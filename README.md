@@ -13,13 +13,16 @@
 Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms.
 
 
-- [🚀 Overview](#-overview)
-- [🎉 Features](#-features)
-- [🔌 Instalation](#-instalation)
-- [✏️ Example](#️-example)
-- [📄 Documentation](#-documentation)
+- [🚀 Overview](#overview)
+- [🎉 Features](#features)
+- [🔌 Instalation](#instalation)
+- [✏️ Examples](#️examples)
+  - [Simple confirm form](#simple-confirm-form)
+  - [Action with parameters](#action-with-parameters)
+  - [Customizing action form layout](#customizing-action-form-layout)
+- [📄 Documentation](#documentation)
 
-##  🚀 Overview
+## 🚀 Overview
 
 Do you need confirmation pages for your actions in Django admin?<br>
 Does creating multiple actions in Django admin that only differ in arguments sound familiar?<br>
@@ -29,7 +32,7 @@ Have you ever added a somewhat hacky way to pass additional parameters to an act
 
 This is how it looks in action:
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/overview.gif" width="100%" alt="GIF showing usage of django-admin-action-forms"></img>
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/overview.gif" width="100%"></img>
 
 By adding a few lines of code, you can create actions with custom forms that will be displayed in an intermediate page before the action is executed. Data from the form will be passed to the action as an additional argument.
 
@@ -42,7 +45,7 @@ Simple and powerful!
 - Supports all modern Django versions (3.2.x, 4.x.x, 5.x.x)
 - Built on top of Django's templates and forms, matches the Django admin style
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
-- Works with custom widgets
+- Works with custom widgets, validators and other Django form features
 
 ## 🔌 Instalation
 
@@ -90,79 +93,144 @@ Simple and powerful!
     ]
     ```
 
-## ✏️ Example
+## ✏️ Examples
 
-Below you can see an example of how to create an action with a custom form.
+### Simple confirm form
 
-If needed, you can:
-- display list of objects that will be affected by using `list_objects`,
-- add short description with `help_text`,
-- use custom widgets by specifying them for each field,
-- reorder or group fields with `fields` and `fieldsets`,
-- use autocomplete for `Model`s or simple choices by using `autocomplete_fields`.
+Sometimes you do not need any additional parameters, but you want to display a confirmation form before executing the action, just to make sure the user is aware of what they are doing. By default, Djanog displays such form for the built-in `delete_selected` action.
+
+Let's create a simple action that will reset the password for selected users, but before that, we want to display a confirmation form.
 
 ```python
-# admin.py
-
-from django.http import HttpRequest
-from django import forms
-from django.contrib import admin
-from django.db.models import QuerySet
-
-from django_admin_action_forms import action_with_form
-from django_admin_action_forms.forms import AdminActionForm
-
-from .models import Order
+from django_admin_action_forms import action_with_form, AdminActionForm
 
 
-class GenerateReportActionForm(AdminActionForm):
-    output_format = forms.ChoiceField(
-        label="Output format", choices=[(1, ".csv"), (2, ".pdf"), (3, ".json")]
-    )
-    from_date = forms.DateField(label="From date", initial="2024-07-15")
-    to_date = forms.DateField(label="To date", initial="2024-07-22")
-    max_orders_per_page = forms.IntegerField(
-        label="Max orders per page",
-        help_text="Only used when output format is PDF",
-        required=False,
-    )
-    comment = forms.CharField(label="Comment", required=False)
+class ResetUsersPasswordActionForm(AdminActionForm):
+    # No fields needed
 
     class Meta:
-        help_text = "This action will generate a sales report for selected orders and download it in the selected format."
-
-        fieldsets = [
-            (
-                None,
-                {"fields": ["output_format"]}
-            ),
-            (
-                "Date range",
-                {"fields": ["from_date", "to_date"]}
-            ),
-            (
-                "Other",
-                {"fields": ["max_orders_per_page", "comment"], "classes": ["collapse"]}
-            ),
-        ]
+        list_objects = True
+        help_text = "Are you sure you want proceed with this action?"
 
 
-@admin.register(Order)
-class OrderAdmin(admin.ModelAdmin):
-
-    @action_with_form(
-        GenerateReportActionForm,
-        description="Generate sales report for selected orders",
-    )
-    def generate_report(self, request: HttpRequest, queryset: QuerySet, data: dict):
-        output_format = data["output_format"]
-        ...
-
-    actions = [
-        generate_report,
-        ...
-    ]
+@action_with_form(
+    ResetUsersPasswordActionForm,
+    description="Reset password for selected users",
+)
+def reset_users_password_action(modeladmin, request, queryset, data):
+    modeladmin.message_user(request, f"Password reset for {queryset.count()} users.")
 ```
+
+By doing this, we recreated the behavior of intermediate page from the built-in `delete_selected` action.
+
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/simple-confirm-form/reset-users-password.gif" width="100%"></img>
+
+### Action with parameters
+
+In many cases however, you will want to pass additional parameters to the action. This can be very useful for e.g.:
+- Changing the status of `Order` to one of the predefined values
+- Setting a discount that you input for selected `Product` objects
+- Adding multiple tags to selected `Article` objects at once
+- Sending mails to selected `User` objects with a custom message, title and attachments
+
+...and many more!
+
+Let's create an action that will change the status of selected `Order` to a value that we select using a dropdown.
+
+```python
+from django import forms
+from django_admin_action_forms import action_with_form, AdminActionForm
+
+
+class ChangeOrderStatusActionForm(AdminActionForm):
+    status = forms.ChoiceField(
+        label="Status",
+        choices=[("new", "New"), ("processing", "Processing"), ("completed", "Completed")],
+        required=True,
+    )
+
+
+@action_with_form(
+    ChangeOrderStatusActionForm,
+    description="Change status for selected Orders",
+)
+def change_order_status_action(modeladmin, request, queryset, data):
+    for order in queryset:
+        order.status = data["status"]
+        order.save()
+    modeladmin.message_user(request, f'Status changed to {data["status"].upper()} for {queryset.count()} orders.')
+```
+
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/change-order-status.gif" width="100%"></img>
+
+You may think that this could be achieved by creating an action for each status, but what if you have 10 statuses? 100? This way you can create a single action that will work for all of them.
+
+And how about parameter, that is not predefined, like a date or a number? It would be impossible to create an action for each possible value.
+
+Let's create an action form that will accept a discount for selected `Product`s and a date when the discount will end.
+
+
+```python
+from django import forms
+from django_admin_action_forms import action_with_form, AdminActionForm
+
+
+class SetProductDiscountActionForm(AdminActionForm):
+    discount = forms.DecimalField(
+        label="Discount (%)",
+        min_value=0,
+        max_value=100,
+        decimal_places=2,
+        required=True,
+    )
+    valid_until = forms.DateField(
+        label="Valid until",
+        required=True,
+    )
+```
+
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/set-product-discount.gif" width="100%"></img>
+
+Now we can set any discount and any date, and because we subclasses [`AdminActionForm`](#adminactionform), we get a nice date picker.
+
+### Customizing action form layout
+
+If your form has many fields, you may want to group them into fieldsets or reorder them. You can do this by using the `fields`, `fieldsets` or corresponding methods in `Meta`.
+
+For `Model` related fields, it might be useful to use `filter_horizontal`/`filter_vertical` or `autocomplete_fields`.
+
+Let's create a action form for action that assigns selected `Tasks` to `Employee`, that we will select using autocomplete widget.
+And optionally, let's add the field for setting the `Tag`s for selected `Task`s.
+
+```python
+from django import forms
+from django_admin_action_forms import action_with_form, AdminActionForm
+
+
+class AssignToEmployeeActionForm(AdminActionForm):
+    employee = forms.ModelChoiceField(
+        queryset=Employee.objects.all(),
+        required=True,
+    )
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        required=False,
+    )
+
+    def clean_tags(self):
+        tags = self.cleaned_data["tags"]
+        if tags.count() > 3:
+            raise forms.ValidationError("You can't assign more than 3 tags to a task.")
+        return tags
+
+    class Meta:
+        autocomplete_fields = ["employee"]
+        filter_horizontal = ["tags"]
+```
+
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/customizing-action-form-layout/assign-to-employee.gif" width="100%"></img>
+
+
 
 ## 📄 Documentation
 
@@ -181,6 +249,8 @@ Functions decorated with `@action_with_form` should accept additional argument `
     description="Description of the action",
 )
 def custom_action(self, request, queryset, data):
+    value_of_field1 = data["field1"]
+    optional_value_of_field2 = data.get("field2")
     ...
 ```
 
@@ -260,6 +330,8 @@ help_text = "This text will be displayed between the form and the list of object
     <code>ModelAdmin.fields</code>
 </a>
 
+Default: `None`
+
 Specifies the fields that should be displayed in the form. If `fieldsets` is provided, `fields` will be ignored.
 
 
@@ -276,7 +348,8 @@ fields = ["field1", ("field2", "field3")]
 Method that can be used to dynamically determine fields that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fields, as described above in the [`fields`](#fields).
 
 ```python
-def get_fields(self, request):
+@classmethod
+def get_fields(cls, request):
     if request.user.is_superuser:
         return ["field1", "field2", "field3"]
     else:
@@ -289,6 +362,8 @@ def get_fields(self, request):
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets">
     <code>ModelAdmin.fieldsets</code>
 </a>
+
+Default: `None`
 
 If both `fields` and `fieldsets` are provided, `fieldsets` will be used.
 
@@ -320,7 +395,8 @@ fieldsets = [
 Method that can be used to dynamically determine fieldsets that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fieldsets, as described above in the [`fieldsets`](#fieldsets).
 
 ```python
-def get_fieldsets(self, request):
+@classmethod
+def get_fieldsets(cls, request):
     if request.user.is_superuser:
         return [
             (
@@ -348,6 +424,10 @@ def get_fieldsets(self, request):
             ),
         ]
 ```
+
+> [!NOTE]
+> Only one of `get_fieldsets`, `fieldsets`, `get_fields` or `fields` should be defined in the `Meta` class.
+> The order of precedence, from highest to lowest, is from left to right.
 
 #### filter_horizontal
 
@@ -391,3 +471,7 @@ Sets fields that should use autocomplete widget. It should be a list of field na
 ```python
 autocomplete_fields = ["field1", "field2"]
 ```
+
+> [!NOTE]
+> Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
+> See [🔌 Instalation](#instalation).

@@ -12,15 +12,14 @@
 
 Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms.
 
-
-- [🚀 Overview](#overview)
-- [🎉 Features](#features)
-- [🔌 Instalation](#instalation)
+- [🚀 Overview](#-overview)
+- [🎉 Features](#-features)
+- [🔌 Instalation](#-instalation)
 - [✏️ Examples](#️examples)
   - [Simple confirm form](#simple-confirm-form)
   - [Action with parameters](#action-with-parameters)
   - [Customizing action form layout](#customizing-action-form-layout)
-- [📄 Documentation](#documentation)
+- [📄 Documentation](#-documentation)
 
 ## 🚀 Overview
 

@@ -142,13 +142,15 @@ class ActionForm(Form):
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
 
-        def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]]":
-            return self.fields
+        @classmethod
+        def get_fields(cls, request: HttpRequest) -> "list[str | tuple[str, ...]]":
+            return getattr(cls, "fields", None)
 
+        @classmethod
         def get_fieldsets(
-            self, request: HttpRequest
+            cls, request: HttpRequest
         ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]":
-            return self.fieldsets
+            return getattr(cls, "fieldsets", None)
 
 
 class AdminActionForm(ActionForm):

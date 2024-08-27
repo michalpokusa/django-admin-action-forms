@@ -98,7 +98,14 @@ class ActionFormAutocompleteJsonView(BaseListView):
         # Field -> QuerySet
         queryset: "QuerySet[Model]" = field.queryset
 
-        queryset, may_have_duplicates = model_admin.get_search_results(
+        queryset_modeladmin: "ModelAdmin | None" = admin_site._registry.get(
+            queryset.model, None
+        )
+
+        if queryset_modeladmin is None:
+            return HttpResponseBadRequest()
+
+        queryset, may_have_duplicates = queryset_modeladmin.get_search_results(
             request, queryset, GET_term
         )
 

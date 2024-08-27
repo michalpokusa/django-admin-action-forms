@@ -18,6 +18,9 @@ def action_with_form(
     permissions: "list[str] | None" = None,
     description: "str | None" = None,
 ):
+    """
+    Decorator used to create an action with a form, alternative to the default ``@admin.action`` decorator.
+    """
 
     def decorator(action_function: FunctionType):
 

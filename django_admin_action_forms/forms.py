@@ -23,6 +23,9 @@ from .widgets import (
 
 
 class ActionForm(Form):
+    """
+    Base class for action forms used in admin actions.
+    """
 
     def _replace_default_field_widgets(self, request: HttpRequest) -> None:
         meta: ActionForm.Meta = getattr(self, "Meta", None)
@@ -145,6 +148,10 @@ class ActionForm(Form):
 
 
 class AdminActionForm(ActionForm):
+    """
+    Extended `ActionForm` class for admin actions. It replaces default field widgets
+    with corresponding admin widgets.
+    """
 
     def _replace_default_field_widgets(self, request: HttpRequest) -> None:
         super()._replace_default_field_widgets(request)
@@ -153,12 +160,7 @@ class AdminActionForm(ActionForm):
 
             if isinstance(field, DateField):
                 field.widget = AdminDateWidget()
-                continue
-
-            if isinstance(field, TimeField):
+            elif isinstance(field, TimeField):
                 field.widget = AdminTimeWidget()
-                continue
-
-            if isinstance(field, SplitDateTimeField):
+            elif isinstance(field, SplitDateTimeField):
                 field.widget = AdminSplitDateTime()
-                continue

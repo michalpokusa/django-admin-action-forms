@@ -6,7 +6,6 @@ from django.contrib.admin.widgets import (
 )
 from django.forms import (
     Form,
-    Field,
     ModelChoiceField,
     ModelMultipleChoiceField,
     DateField,
@@ -25,23 +24,17 @@ from .widgets import (
 
 class ActionForm(Form):
 
-    def __init_subclass__(cls):
-
-        meta: ActionForm.Meta = getattr(cls, "Meta", None)
+    def _replace_default_field_widgets(self, request: HttpRequest) -> None:
+        meta: ActionForm.Meta = getattr(self, "Meta", None)
         autocomplete_fields = getattr(meta, "autocomplete_fields", [])
         filter_horizontal = getattr(meta, "filter_horizontal", [])
         filter_vertical = getattr(meta, "filter_vertical", [])
 
-        fields: "dict[str, Field]" = {
-            **cls.base_fields,
-            **cls.declared_fields,
-        }
-
-        for field_name, field in fields.items():
+        for field_name, field in self.fields.items():
             if field_name in filter_horizontal:
                 if isinstance(field, ModelMultipleChoiceField):
                     field.widget = FilterHorizontalWidget(
-                        verbose_name=field.label,
+                        verbose_name=field.get_bound_field(self, field_name).label,
                         is_stacked=False,
                         choices=field.choices,
                     )
@@ -49,7 +42,7 @@ class ActionForm(Form):
             if field_name in filter_vertical:
                 if isinstance(field, ModelMultipleChoiceField):
                     field.widget = FilterVerticalWidget(
-                        verbose_name=field.label,
+                        verbose_name=field.get_bound_field(self, field_name).label,
                         is_stacked=True,
                         choices=field.choices,
                     )
@@ -66,8 +59,6 @@ class ActionForm(Form):
                     )
 
             field.widget.is_required = field.required
-
-        return super().__init_subclass__()
 
     def _get_fieldsets_for_context(self, request: HttpRequest) -> "list[Fieldset]":
         meta: ActionForm.Meta = getattr(self, "Meta", None)
@@ -127,7 +118,7 @@ class ActionForm(Form):
 
         return all_fields.difference(included_fields)
 
-    def _remove_excluded_fields(self, request: HttpRequest):
+    def _remove_excluded_fields(self, request: HttpRequest) -> None:
         for field_name in self._get_excluded_fields(request):
             self.fields.pop(field_name)
 
@@ -155,13 +146,10 @@ class ActionForm(Form):
 
 class AdminActionForm(ActionForm):
 
-    def __init_subclass__(cls):
-        fields = {
-            **cls.base_fields,
-            **cls.declared_fields,
-        }
+    def _replace_default_field_widgets(self, request: HttpRequest) -> None:
+        super()._replace_default_field_widgets(request)
 
-        for field in fields.values():
+        for field in self.fields.values():
 
             if isinstance(field, DateField):
                 field.widget = AdminDateWidget()
@@ -174,5 +162,3 @@ class AdminActionForm(ActionForm):
             if isinstance(field, SplitDateTimeField):
                 field.widget = AdminSplitDateTime()
                 continue
-
-        return super().__init_subclass__()

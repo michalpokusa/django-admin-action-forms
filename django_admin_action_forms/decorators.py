@@ -30,6 +30,7 @@ def action_with_form(
                 else form_class()
             )
             form._remove_excluded_fields(request)
+            form._replace_default_field_widgets(request)
 
             form_class_meta = getattr(form_class, "Meta", None)
 

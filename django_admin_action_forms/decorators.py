@@ -25,7 +25,18 @@ def action_with_form(
     def decorator(action_function: FunctionType):
 
         @wraps(action_function)
-        def wrapper(modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet):
+        def wrapper(*args):
+
+            modeladmin: ModelAdmin
+            request: HttpRequest
+            queryset: QuerySet
+
+            # Compatibility with django-no-queryset-admin-actions
+            if any(isinstance(arg, QuerySet) for arg in args):
+                modeladmin, request, queryset = args
+            else:
+                modeladmin, request = args
+                queryset = modeladmin.model.objects.none()
 
             form = (
                 form_class(request.POST)
@@ -38,7 +49,12 @@ def action_with_form(
             form_class_meta = getattr(form_class, "Meta", None)
 
             if form.is_valid():
-                return action_function(modeladmin, request, queryset, form.cleaned_data)
+                if queryset:
+                    return action_function(
+                        modeladmin, request, queryset, form.cleaned_data
+                    )
+                else:
+                    return action_function(modeladmin, request, form.cleaned_data)
 
             app_config: AppConfig = modeladmin.opts.app_config
             model: Model = modeladmin.model

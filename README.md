@@ -45,6 +45,7 @@ Simple and powerful!
 - Built on top of Django's templates and forms, matches the Django admin style
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
 - Works with custom widgets, validators and other Django form features
+- Compatible with [django-no-queryset-admin-actions](https://pypi.org/project/django-no-queryset-admin-actions/)
 
 ## 🔌 Instalation
 

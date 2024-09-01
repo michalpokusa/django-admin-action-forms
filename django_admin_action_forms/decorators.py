@@ -1,12 +1,12 @@
 from functools import wraps
 from types import FunctionType
 
+from django.apps import AppConfig
 from django.contrib.admin import ModelAdmin
 from django.db.models import Model, QuerySet
 from django.forms import Field
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
-from django.apps import AppConfig
 
 from .forms import ActionForm
 from .widgets import AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget

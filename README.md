@@ -199,8 +199,9 @@ If your form has many fields, you may want to group them into fieldsets or reord
 
 For `Model` related fields, it might be useful to use `filter_horizontal`/`filter_vertical` or `autocomplete_fields`.
 
-Let's create a action form for action that assigns selected `Tasks` to `Employee`, that we will select using autocomplete widget.
-And optionally, let's add the field for setting the `Tag`s for selected `Task`s.
+Let's create a action form for action that assigns selected `Task`s to `Employee`, that we will select using autocomplete widget.
+Also, let's add the field for setting the optional `Tag`s for selected `Task`s, and validate that no more than 3
+were selected using <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#using-forms-to-validate-data">Django's form validation</a>.
 
 ```python
 from django import forms
@@ -255,6 +256,10 @@ def custom_action(self, request, queryset, data):
 ```
 
 ### ActionForm
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#django.forms.Form">
+    <code>Form</code>
+</a>
 
 Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
@@ -474,4 +479,4 @@ autocomplete_fields = ["field1", "field2"]
 
 > [!NOTE]
 > Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
-> See [🔌 Instalation](#instalation).
+> See [🔌 Instalation](#-instalation).

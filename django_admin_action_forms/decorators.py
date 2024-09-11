@@ -80,7 +80,7 @@ def action_with_form(
                     )
 
             context = {
-                "title": modeladmin.get_action(action)[2],
+                "title": modeladmin.get_actions(request).get(action)[2],
                 # For default user tools to work
                 "has_permission": True,
                 "site_url": modeladmin.admin_site.site_url,

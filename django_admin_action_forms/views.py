@@ -76,7 +76,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
 
         # ModelAdmin -> Action
         try:
-            action, _, _ = model_admin.get_action(GET_action_name)
+            action, _, _ = model_admin.get_actions(request).get(GET_action_name)
         except TypeError:
             return HttpResponseBadRequest()
 

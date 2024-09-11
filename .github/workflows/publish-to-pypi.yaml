@@ -1,18 +1,9 @@
 name: Build and Publish to PyPI
 
 on:
-  workflow_dispatch:
-    inputs:
-      package_version:
-        description: 'Package version'
-        default: '0.0.0'
-        required: true
-        type: string
-      publish:
-        description: 'Publish to PyPI'
-        default: false
-        required: true
-        type: boolean
+  push:
+    tags:
+      - '*.*.*'
 
 jobs:
   build-and-publish-to-pypi:
@@ -38,11 +29,10 @@ jobs:
 
       - name: Build package
         env:
-          PACKAGE_VERSION: ${{ github.event.inputs.package_version }}
+          PACKAGE_VERSION: ${{ github.ref_name }}
         run: bash build-package.sh
 
       - name: Publish to PyPI
-        if: ${{ github.event.inputs.publish == 'true' }}
         env:
           TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
           TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}

@@ -97,7 +97,7 @@ Simple and powerful!
 
 ### Simple confirm form
 
-Sometimes you do not need any additional parameters, but you want to display a confirmation form before executing the action, just to make sure the user is aware of what they are doing. By default, Djanog displays such form for the built-in `delete_selected` action.
+Sometimes you do not need any additional parameters, but you want to display a confirmation form before executing the action, just to make sure the user is aware of what they are doing. By default, Django displays such form for the built-in `delete_selected` action.
 
 Let's create a simple action that will reset the password for selected users, but before that, we want to display a confirmation form.
 

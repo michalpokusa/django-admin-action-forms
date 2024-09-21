@@ -39,7 +39,7 @@ def action_with_form(
                 queryset = modeladmin.model.objects.none()
 
             form = (
-                form_class(request.POST)
+                form_class(data=request.POST, files=request.FILES)
                 if "action_form" in request.POST
                 else form_class()
             )

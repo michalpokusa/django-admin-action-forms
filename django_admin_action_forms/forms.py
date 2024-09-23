@@ -35,6 +35,7 @@ class ActionForm(Form):
 
     def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
         self._remove_excluded_fields(request)
+        self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
 
     def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
@@ -134,6 +135,16 @@ class ActionForm(Form):
     def _remove_excluded_fields(self, request: HttpRequest) -> None:
         for field_name in self._get_excluded_fields(request):
             self.fields.pop(field_name)
+
+    def _apply_limit_choices_to_on_model_choice_fields(self) -> None:
+        for field in self.fields.values():
+            if isinstance(field, (ModelChoiceField, ModelMultipleChoiceField)):
+                queryset: QuerySet = field.queryset
+
+                limit_choices_to = field.get_limit_choices_to()
+
+                if limit_choices_to is not None:
+                    field.queryset = queryset.complex_filter(limit_choices_to)
 
     class Meta:
         list_objects: bool

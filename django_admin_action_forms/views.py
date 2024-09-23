@@ -29,7 +29,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
         Depending on GET parameters and user permissions may return a `400 Bad Request`, `403 Forbidden`, or `200 OK` response
         with a JSON object containing the results and pagination information.
 
-        Returned objects are filtered from queryset specified on field.
+        Returned objects are filtered from `queryset` specified on field and restricted by the `limit_choices_to` attribute.
         """
         if not request.user.is_staff:
             return HttpResponseForbidden()
@@ -97,6 +97,11 @@ class ActionFormAutocompleteJsonView(BaseListView):
 
         # Field -> QuerySet
         queryset: "QuerySet[Model]" = field.queryset
+
+        limit_choices_to = field.get_limit_choices_to()
+
+        if limit_choices_to is not None:
+            queryset = queryset.complex_filter(limit_choices_to)
 
         queryset_modeladmin: "ModelAdmin | None" = admin_site._registry.get(
             queryset.model, None

@@ -101,6 +101,12 @@ def action_with_form(
                 "queryset": queryset,
                 "form": form,
                 "fieldsets": form._get_fieldsets_for_context(request),
+                "confirm_button_text": getattr(
+                    form_class_meta, "confirm_button_text", None
+                ),
+                "cancel_button_text": getattr(
+                    form_class_meta, "cancel_button_text", None
+                ),
             }
 
             return TemplateResponse(

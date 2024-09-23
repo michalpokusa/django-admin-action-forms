@@ -68,7 +68,7 @@
         {% endfor %}
         <input type="hidden" name="action_form" />
 
-        <input type="submit" value="{% translate "Confirm" %}">
-        <a href="#" class="button cancel-link">{% translate "Cancel" %}</a>
+        <input type="submit" value="{% if confirm_button_text %}{{ confirm_button_text }}{% else %}{% translate "Confirm" %}{% endif %}">
+        <a href="#" class="button cancel-link">{% if cancel_button_text %}{{ cancel_button_text }}{% else %}{% translate "Cancel" %}{% endif %}</a>
     </form>
 {% endblock %}

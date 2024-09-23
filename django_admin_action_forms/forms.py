@@ -136,6 +136,9 @@ class ActionForm(Form):
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
 
+        confirm_button_text: str
+        cancel_button_text: str
+
         @classmethod
         def get_fields(cls, request: HttpRequest) -> "list[str | tuple[str, ...]]":
             return getattr(cls, "fields", None)

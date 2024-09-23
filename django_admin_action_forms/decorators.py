@@ -27,16 +27,14 @@ def action_with_form(
         @wraps(action_function)
         def wrapper(*args):
 
-            modeladmin: ModelAdmin
-            request: HttpRequest
-            queryset: QuerySet
-
             # Compatibility with django-no-queryset-admin-actions
-            if any(isinstance(arg, QuerySet) for arg in args):
-                modeladmin, request, queryset = args
-            else:
-                modeladmin, request = args
-                queryset = modeladmin.model.objects.none()
+            modeladmin: ModelAdmin = args[0]
+            request: HttpRequest = args[1]
+            queryset: QuerySet = (
+                args[2]
+                if len(args) > 2 and isinstance(args[2], QuerySet)
+                else modeladmin.model.objects.none()
+            )
 
             form = (
                 form_class(data=request.POST, files=request.FILES)

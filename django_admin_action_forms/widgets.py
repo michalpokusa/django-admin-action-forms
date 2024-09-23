@@ -52,11 +52,8 @@ class ActionFormAutocompleteMixin(Widget):
         self, base_attrs: "dict[str, Any]", extra_attrs: "dict[str, Any] | None" = None
     ) -> "dict[str, Any]":
         attrs = super().build_attrs(base_attrs, extra_attrs)
-        attrs.setdefault("class", "")
         attrs.update(
             {
-                **base_attrs,
-                **(extra_attrs or {}),
                 "data-ajax--cache": "true",
                 "data-ajax--delay": 250,
                 "data-ajax--type": "GET",

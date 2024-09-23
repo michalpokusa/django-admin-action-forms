@@ -1,9 +1,11 @@
+from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
 from django.contrib.admin.widgets import (
     AdminDateWidget,
     AdminTimeWidget,
     AdminSplitDateTime,
 )
+from django.db.models import QuerySet
 from django.forms import (
     Form,
     ModelChoiceField,
@@ -27,7 +29,15 @@ class ActionForm(Form):
     Base class for action forms used in admin actions.
     """
 
-    def _replace_default_field_widgets(self, request: HttpRequest) -> None:
+    def __post_init__(
+        self, modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet
+    ) -> None: ...
+
+    def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
+        self._remove_excluded_fields(request)
+        self._replace_widgets_for_filter_and_autocomplete_fields()
+
+    def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
         meta: ActionForm.Meta = getattr(self, "Meta", None)
         autocomplete_fields = getattr(meta, "autocomplete_fields", [])
         filter_horizontal = getattr(meta, "filter_horizontal", [])
@@ -156,9 +166,11 @@ class AdminActionForm(ActionForm):
     with corresponding admin widgets.
     """
 
-    def _replace_default_field_widgets(self, request: HttpRequest) -> None:
-        super()._replace_default_field_widgets(request)
+    def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
+        super()._convert_from_form_to_actionform(request)
+        self._replace_default_field_widgets_with_admin_widgets()
 
+    def _replace_default_field_widgets_with_admin_widgets(self) -> None:
         for field in self.fields.values():
 
             if isinstance(field, DateField):

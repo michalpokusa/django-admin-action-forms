@@ -41,8 +41,8 @@ def action_with_form(
                 if "action_form" in request.POST
                 else form_class()
             )
-            form._remove_excluded_fields(request)
-            form._replace_default_field_widgets(request)
+            form.__post_init__(modeladmin, request, queryset)
+            form._convert_from_form_to_actionform(request)
 
             form_class_meta = getattr(form_class, "Meta", None)
 

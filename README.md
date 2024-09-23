@@ -263,9 +263,28 @@ def custom_action(self, request, queryset, data):
 
 Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
+#### _def_ \_\_post_init\_\_(modeladmin, request, queryset)
+
+> _Added in version 1.2.0_
+
+Method called after the form is initialized that can be used to modify the form fields, add additional ones or change the form's `Meta` options based on the `modeladmin` from which the action was called, `request` and `queryset` containing objects on which the action will be performed.
+
+```python
+def __post_init__(self, modeladmin, request, queryset):
+    modeladmin.message_user(
+        request, f"Warning, this action cannot be undone.", "warning"
+    )
+
+    if request.user.is_superuser:
+        self.fields["field1"].required = False
+
+    if queryset.count() > 25:
+        self.Meta.list_objects = False
+```
+
 ### AdminActionForm
 
-In addition to `ActionForm`, it replaces default text inputs for `DateField`, `TimeField`, `SplitDateTimeField` with respective admin widgets.
+In addition to `ActionForm`, it replaces default widgets for most field types with corresponding Django admin widgets that e.g. add a interactive date picker or prepend a clickable link above URL fields.
 
 Most of the time this is a class you want to subclass when creating custom action forms.
 
@@ -344,7 +363,7 @@ Specifies the fields that should be displayed in the form. If `fieldsets` is pro
 fields = ["field1", ("field2", "field3")]
 ```
 
-#### get_fields(request)
+#### _def_ get_fields(request)
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fields">
     <code>ModelAdmin.get_fields()</code>
@@ -391,7 +410,7 @@ fieldsets = [
 ]
 ```
 
-#### get_fieldsets(request)
+#### _def_ get_fieldsets(request)
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fieldsets">
     <code>ModelAdmin.get_fieldsets()</code>
@@ -480,3 +499,32 @@ autocomplete_fields = ["field1", "field2"]
 > [!NOTE]
 > Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
 > See [🔌 Instalation](#-instalation).
+
+
+#### confirm_button_text
+
+> _Added in version 1.2.0_
+
+Default: `"Confirm"`
+
+Text displayed on the confirm button. It can be either a `str` or a lazy translation.
+
+```python
+from django.utils.translation import gettext_lazy as _
+
+confirm_button_text = _("Proceed")
+```
+
+#### cancel_button_text
+
+> _Added in version 1.2.0_
+
+Default: `"Cancel"`
+
+Text displayed on the cancel button. It can be either a `str` or a lazy translation.
+
+```python
+from django.utils.translation import gettext_lazy as _
+
+cancel_button_text = _("Abort")
+```

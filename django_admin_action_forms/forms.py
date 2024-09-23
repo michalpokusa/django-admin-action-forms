@@ -51,6 +51,20 @@ class ActionForm(Form):
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
 
+    def _remove_excluded_fields(self, request: HttpRequest) -> None:
+        for field_name in self._get_excluded_fields(request):
+            self.fields.pop(field_name)
+
+    def _apply_limit_choices_to_on_model_choice_fields(self) -> None:
+        for field in self.fields.values():
+            if isinstance(field, (ModelChoiceField, ModelMultipleChoiceField)):
+                queryset: QuerySet = field.queryset
+
+                limit_choices_to = field.get_limit_choices_to()
+
+                if limit_choices_to is not None:
+                    field.queryset = queryset.complex_filter(limit_choices_to)
+
     def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
         meta: ActionForm.Meta = getattr(self, "Meta", None)
         autocomplete_fields = getattr(meta, "autocomplete_fields", [])
@@ -144,20 +158,6 @@ class ActionForm(Form):
         included_fields = self._get_included_fields(request)
 
         return all_fields.difference(included_fields)
-
-    def _remove_excluded_fields(self, request: HttpRequest) -> None:
-        for field_name in self._get_excluded_fields(request):
-            self.fields.pop(field_name)
-
-    def _apply_limit_choices_to_on_model_choice_fields(self) -> None:
-        for field in self.fields.values():
-            if isinstance(field, (ModelChoiceField, ModelMultipleChoiceField)):
-                queryset: QuerySet = field.queryset
-
-                limit_choices_to = field.get_limit_choices_to()
-
-                if limit_choices_to is not None:
-                    field.queryset = queryset.complex_filter(limit_choices_to)
 
     class Meta:
         list_objects: bool

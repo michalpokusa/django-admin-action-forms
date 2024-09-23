@@ -6,7 +6,7 @@
 {
     const $ = django.jQuery;
 
-    $.fn.djangoAdminSelect2 = function() {
+    $.fn.djangoAdminActionFormSelect2 = function() {
         $.each(this, function(i, element) {
             $(element).select2({
                 ajax: {
@@ -30,10 +30,10 @@
     $(function() {
         // Initialize all autocomplete widgets except the one in the template
         // form used when a new formset is added.
-        $('.admin-autocomplete').not('[name*=__prefix__]').djangoAdminSelect2();
+        $('.admin-actionform-autocomplete').not('[name*=__prefix__]').djangoAdminActionFormSelect2();
     });
 
     document.addEventListener('formset:added', (event) => {
-        $(event.target).find('.admin-autocomplete').djangoAdminSelect2();
+        $(event.target).find('.admin-actionform-autocomplete').djangoAdminActionFormSelect2();
     });
 }

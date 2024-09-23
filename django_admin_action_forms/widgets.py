@@ -68,7 +68,7 @@ class ActionFormAutocompleteMixin(Widget):
                 "class": " ".join(
                     [
                         *attrs.get("class", "").split(),
-                        "admin-autocomplete",
+                        "admin-actionform-autocomplete",
                     ]
                 ),
             }

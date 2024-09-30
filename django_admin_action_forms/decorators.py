@@ -79,23 +79,9 @@ def action_with_form(
                     )
 
             context = {
+                **admin_site.each_context(request),
                 "title": modeladmin.get_actions(request).get(action)[2],
                 "subtitle": None,
-                "site_title": admin_site.site_title,
-                "site_header": admin_site.site_header,
-                # For default user tools to work
-                "has_permission": admin_site.has_permission(request),
-                "site_url": admin_site.site_url,
-                # For default sidebar to work
-                "is_popup": False,
-                "is_nav_sidebar_enabled": admin_site.enable_nav_sidebar,
-                "available_apps": admin_site.get_app_list(request),
-                # Passing default POST values for actions
-                "action": action,
-                "select_across": request.POST.get("select_across"),
-                "index": request.POST.get("index"),
-                "selected_action": request.POST.getlist("_selected_action"),
-                # For action form
                 "app_label": app_config.label,
                 "app_verbose_name": app_config.verbose_name,
                 "model_name": model._meta.model_name,
@@ -106,6 +92,10 @@ def action_with_form(
                 "queryset": queryset,
                 "form": form,
                 "fieldsets": form._get_fieldsets_for_context(request),
+                "action": action,
+                "select_across": request.POST.get("select_across"),
+                "index": request.POST.get("index"),
+                "selected_action": request.POST.getlist("_selected_action"),
                 "confirm_button_text": getattr(
                     form_class_meta, "confirm_button_text", None
                 ),

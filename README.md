@@ -43,6 +43,7 @@ Simple and powerful!
 - Requires minimal configuration, easy to use
 - Supports all modern Django versions (3.2.x, 4.x.x, 5.x.x)
 - Built on top of Django's templates and forms, matches the Django admin style
+- No additional dependencies
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
 - Works with custom widgets, validators and other Django form features
 - Compatible with [django-no-queryset-admin-actions](https://pypi.org/project/django-no-queryset-admin-actions/)

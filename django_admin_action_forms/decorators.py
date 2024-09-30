@@ -2,7 +2,7 @@ from functools import wraps
 from types import FunctionType
 
 from django.apps import AppConfig
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import AdminSite, ModelAdmin
 from django.db.models import Model, QuerySet
 from django.forms import Field
 from django.http import HttpRequest
@@ -54,6 +54,7 @@ def action_with_form(
                 else:
                     return action_function(modeladmin, request, form.cleaned_data)
 
+            admin_site: AdminSite = modeladmin.admin_site
             app_config: AppConfig = modeladmin.opts.app_config
             model: Model = modeladmin.model
 
@@ -69,7 +70,7 @@ def action_with_form(
                 ):
                     field.widget.attrs.update(
                         {
-                            "data-admin-site": modeladmin.admin_site.name,
+                            "data-admin-site": admin_site.name,
                             "data-app-label": model._meta.app_label,
                             "data-model-name": model._meta.model_name,
                             "data-action-name": action,
@@ -79,12 +80,16 @@ def action_with_form(
 
             context = {
                 "title": modeladmin.get_actions(request).get(action)[2],
+                "subtitle": None,
+                "site_title": admin_site.site_title,
+                "site_header": admin_site.site_header,
                 # For default user tools to work
-                "has_permission": True,
-                "site_url": modeladmin.admin_site.site_url,
+                "has_permission": admin_site.has_permission(request),
+                "site_url": admin_site.site_url,
                 # For default sidebar to work
-                "is_nav_sidebar_enabled": True,
-                "available_apps": modeladmin.admin_site.get_app_list(request),
+                "is_popup": False,
+                "is_nav_sidebar_enabled": admin_site.enable_nav_sidebar,
+                "available_apps": admin_site.get_app_list(request),
                 # Passing default POST values for actions
                 "action": action,
                 "select_across": request.POST.get("select_across"),

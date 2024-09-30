@@ -14,7 +14,7 @@ Extension for the Django admin panel that allows passing additional parameters t
 
 - [🚀 Overview](#-overview)
 - [🎉 Features](#-features)
-- [🔌 Instalation](#-instalation)
+- [🔌 Installation](#-installation)
 - [✏️ Examples](#️examples)
   - [Simple confirm form](#simple-confirm-form)
   - [Action with parameters](#action-with-parameters)
@@ -31,12 +31,11 @@ Have you ever added a somewhat hacky way to pass additional parameters to an act
 
 This is how it looks in action:
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/overview.gif" width="100%"></img>
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/overview.gif" width="100%">
 
 By adding a few lines of code, you can create actions with custom forms that will be displayed in an intermediate page before the action is executed. Data from the form will be passed to the action as an additional argument.
 
 Simple and powerful!
-
 
 ### 🎉 Features
 
@@ -48,14 +47,13 @@ Simple and powerful!
 - Works with custom widgets, validators and other Django form features
 - Compatible with [django-no-queryset-admin-actions](https://pypi.org/project/django-no-queryset-admin-actions/)
 
-## 🔌 Instalation
+## 🔌 Installation
 
 1. Install using ``pip``:
 
     ```bash
     $ pip3 install django-admin-action-forms
     ```
-
 
 2. Add `'django_admin_action_forms'` to your `INSTALLED_APPS` setting.
     ```python
@@ -67,7 +65,7 @@ Simple and powerful!
 
 3. Include `'django_admin_action_forms.urls'` in your `urls.py` file. This is needed only if you want to use autocomplete.
 
-    If you are want to include them under same path as admin site, make sure to place them **before** the admin urls.
+    If you want to include them under the same path as admin site, make sure to place them **before** the admin URLs.
 
     ```python
     from django.contrib import admin
@@ -124,7 +122,7 @@ def reset_users_password_action(modeladmin, request, queryset, data):
 
 By doing this, we recreated the behavior of intermediate page from the built-in `delete_selected` action.
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/simple-confirm-form/reset-users-password.gif" width="100%"></img>
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/simple-confirm-form/reset-users-password.gif" width="100%">
 
 ### Action with parameters
 
@@ -162,14 +160,13 @@ def change_order_status_action(modeladmin, request, queryset, data):
     modeladmin.message_user(request, f'Status changed to {data["status"].upper()} for {queryset.count()} orders.')
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/change-order-status.gif" width="100%"></img>
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/change-order-status.gif" width="100%">
 
 You may think that this could be achieved by creating an action for each status, but what if you have 10 statuses? 100? This way you can create a single action that will work for all of them.
 
 And how about parameter, that is not predefined, like a date or a number? It would be impossible to create an action for each possible value.
 
-Let's create an action form that will accept a discount for selected `Product`s and a date when the discount will end.
-
+Let's create an action form that will accept a discount for selected `Products` and a date when the discount will end.
 
 ```python
 from django import forms
@@ -190,19 +187,19 @@ class SetProductDiscountActionForm(AdminActionForm):
     )
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/set-product-discount.gif" width="100%"></img>
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/set-product-discount.gif" width="100%">
 
-Now we can set any discount and any date, and because we subclasses [`AdminActionForm`](#adminactionform), we get a nice date picker.
+Now we can set any discount and any date, and because we subclassed [`AdminActionForm`](#adminactionform), we get a nice date picker.
 
 ### Customizing action form layout
 
-If your form has many fields, you may want to group them into fieldsets or reorder them. You can do this by using the `fields`, `fieldsets` or corresponding methods in `Meta`.
+If your form has many fields, you may want to group them into fieldsets or reorder them. You can do this by using the `fields`, `fieldsets`, or corresponding methods in `Meta`.
 
-For `Model` related fields, it might be useful to use `filter_horizontal`/`filter_vertical` or `autocomplete_fields`.
+For `Model`-related fields, it might be useful to use `filter_horizontal`/`filter_vertical` or `autocomplete_fields`.
 
-Let's create a action form for action that assigns selected `Task`s to `Employee`, that we will select using autocomplete widget.
-Also, let's add the field for setting the optional `Tag`s for selected `Task`s, and validate that no more than 3
-were selected using <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#using-forms-to-validate-data">Django's form validation</a>.
+Let's create an action form for action that assigns selected `Tasks` to `Employee`, that we will select using autocomplete widget.
+Also, let's add the field for setting the optional `Tags` for selected `Tasks`, and validate that no more than 3
+are selected using <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#using-forms-to-validate-data">Django's form validation</a>.
 
 ```python
 from django import forms
@@ -230,9 +227,7 @@ class AssignToEmployeeActionForm(AdminActionForm):
         filter_horizontal = ["tags"]
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/customizing-action-form-layout/assign-to-employee.gif" width="100%"></img>
-
-
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/customizing-action-form-layout/assign-to-employee.gif" width="100%">
 
 ## 📄 Documentation
 
@@ -306,14 +301,13 @@ class CustomActionForm(AdminActionForm):
     ...
 ```
 
-
 ### ActionForm.Meta
 
 > Works similar to some <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#modeladmin-options">
     <code>ModelAdmin</code> options
 </a>
 
-Additional configuration for action forms. It can be use to customize the layout of the form, add help text or display a list of objects that will be affected by the action.
+Additional configuration for action forms. It can be used to customize the layout of the form, add help text, or display a list of objects that will be affected by the action.
 
 ```python
 class CustomActionForm(AdminActionForm):
@@ -359,7 +353,6 @@ Default: `None`
 
 Specifies the fields that should be displayed in the form. If `fieldsets` is provided, `fields` will be ignored.
 
-
 ```python
 fields = ["field1", ("field2", "field3")]
 ```
@@ -380,7 +373,6 @@ def get_fields(cls, request):
     else:
         return ["field1", "field2"]
 ```
-
 
 #### fieldsets
 
@@ -490,7 +482,6 @@ filter_vertical = ["field1", "field2"]
 
 Default: `None`
 
-
 Sets fields that should use autocomplete widget. It should be a list of field names.
 
 ```python
@@ -499,8 +490,7 @@ autocomplete_fields = ["field1", "field2"]
 
 > [!NOTE]
 > Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
-> See [🔌 Instalation](#-instalation).
-
+> See [🔌 Installation](#-installation).
 
 #### confirm_button_text
 

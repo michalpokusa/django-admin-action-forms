@@ -30,11 +30,11 @@ def action_with_form(
             # Compatibility with django-no-queryset-admin-actions
             modeladmin: ModelAdmin = args[0]
             request: HttpRequest = args[1]
-            queryset: QuerySet = (
-                args[2]
-                if len(args) > 2 and isinstance(args[2], QuerySet)
-                else modeladmin.model.objects.none()
+            queryset: QuerySet = next(
+                (arg for arg in args if isinstance(arg, QuerySet)),
+                modeladmin.model.objects.none(),
             )
+            rest = args[2:]
 
             form = (
                 form_class(data=request.POST, files=request.FILES)
@@ -47,12 +47,7 @@ def action_with_form(
             form_class_meta = getattr(form_class, "Meta", None)
 
             if form.is_valid():
-                if queryset:
-                    return action_function(
-                        modeladmin, request, queryset, form.cleaned_data
-                    )
-                else:
-                    return action_function(modeladmin, request, form.cleaned_data)
+                return action_function(modeladmin, request, *rest, form.cleaned_data)
 
             admin_site: AdminSite = modeladmin.admin_site
             app_config: AppConfig = modeladmin.opts.app_config

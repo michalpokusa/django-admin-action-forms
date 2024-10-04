@@ -50,6 +50,10 @@ class ActionFormAutocompleteMixin(Widget):
     action form autocomplete widgets.
     """
 
+    def __init__(self, attrs=None, choices=()):
+        super().__init__(attrs)
+        self.choices = choices
+
     def build_attrs(
         self, base_attrs: "dict[str, Any]", extra_attrs: "dict[str, Any] | None" = None
     ) -> "dict[str, Any]":
@@ -74,6 +78,33 @@ class ActionFormAutocompleteMixin(Widget):
         )
 
         return attrs
+
+    def optgroups(self, name, value, attr=None):
+        default = (None, [], 0)
+        groups = [default]
+        has_selected = False
+        selected_choices = {
+            str(v) for v in value if str(v) not in self.choices.field.empty_values
+        }
+        if not self.is_required and not self.allow_multiple_selected:
+            default[1].append(self.create_option(name, "", "", False, 0))
+        choices = (
+            (obj.pk, self.choices.field.label_from_instance(obj))
+            for obj in self.choices.queryset.filter(pk__in=selected_choices)
+        )
+        for option_value, option_label in choices:
+            selected = str(option_value) in value and (
+                has_selected is False or self.allow_multiple_selected
+            )
+            has_selected |= selected
+            index = len(default[1])
+            subgroup = default[1]
+            subgroup.append(
+                self.create_option(
+                    name, option_value, option_label, selected_choices, index
+                )
+            )
+        return groups
 
     @property
     def media(self):

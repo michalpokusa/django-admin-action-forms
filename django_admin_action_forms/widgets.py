@@ -39,7 +39,9 @@ class RenderInsideDivMixin(Widget):
     def render(self, *args, **kwargs):
         rendered_widget = super().render(*args, **kwargs)
 
-        return format_html(f"<div>{rendered_widget}</div>")
+        return format_html(
+            f'<div class="related-widget-wrapper">{rendered_widget}</div>'
+        )
 
 
 class ActionFormAutocompleteMixin(Widget):

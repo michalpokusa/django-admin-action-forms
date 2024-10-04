@@ -1,3 +1,6 @@
+select.admin-actionform-autocomplete {
+    width: 20em;
+}
 
 /* Action form "Confirm" button */
 .action-form form input[type="submit"] {
@@ -9,7 +12,6 @@
 .action-form form input[type="submit"]:hover {
     background: var(--default-button-hover-bg);
 }
-
 
 /* Action form "Cancel" button */
 .action-form form .cancel-link {

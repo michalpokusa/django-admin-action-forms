@@ -27,7 +27,10 @@ from django.forms import (
     URLField,
     UUIDField,
 )
+from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
+from django.utils.text import format_lazy
+from django.utils.translation import gettext_lazy
 
 from .widgets import (
     FilterHorizontalWidget,
@@ -50,6 +53,7 @@ class ActionForm(Form):
         self._remove_excluded_fields(request)
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
+        self._add_default_selectmultiple_widget_help_text()
 
     def _remove_excluded_fields(self, request: HttpRequest) -> None:
         for field_name in self._get_excluded_fields(request):
@@ -100,6 +104,25 @@ class ActionForm(Form):
                     )
 
             field.widget.is_required = field.required
+
+    def _add_default_selectmultiple_widget_help_text(self) -> None:
+        for field in self.fields.values():
+            field: Field
+            if (
+                isinstance(field.widget, SelectMultiple)
+                and field.widget.allow_multiple_selected
+                and not isinstance(
+                    field.widget,
+                    (CheckboxSelectMultiple, AutocompleteModelMultiChoiceWidget),
+                )
+            ):
+                msg = gettext_lazy(
+                    "Hold down “Control”, or “Command” on a Mac, to select more than one."
+                )
+                help_text = field.help_text
+                field.help_text = (
+                    format_lazy("{} {}", help_text, msg) if help_text else msg
+                )
 
     def _get_fieldsets_for_context(self, request: HttpRequest) -> "list[Fieldset]":
         meta: ActionForm.Meta = getattr(self, "Meta", None)

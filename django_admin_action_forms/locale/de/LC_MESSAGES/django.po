@@ -6,4 +6,4 @@ msgid "Confirm"
 msgstr "Bestätigen"
 
 msgid "Cancel"
-msgstr "Stornieren"
+msgstr "Abbrechen"

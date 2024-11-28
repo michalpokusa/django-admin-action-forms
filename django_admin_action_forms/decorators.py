@@ -44,8 +44,6 @@ def action_with_form(
             form.__post_init__(modeladmin, request, queryset)
             form._convert_from_form_to_actionform(request)
 
-            form_class_meta = getattr(form_class, "Meta", None)
-
             if form.is_valid():
                 return action_function(modeladmin, request, *rest, form.cleaned_data)
 
@@ -82,8 +80,8 @@ def action_with_form(
                 "model_name": model._meta.model_name,
                 "model_verbose_name": model._meta.verbose_name,
                 "model_verbose_name_plural": model._meta.verbose_name_plural,
-                "help_text": getattr(form_class_meta, "help_text", None),
-                "list_objects": getattr(form_class_meta, "list_objects", False),
+                "help_text": getattr(form.Meta, "help_text", None),
+                "list_objects": getattr(form.Meta, "list_objects", False),
                 "queryset": queryset,
                 "form": form,
                 "fieldsets": form.fieldsets,
@@ -91,12 +89,8 @@ def action_with_form(
                 "select_across": request.POST.get("select_across"),
                 "index": request.POST.get("index"),
                 "selected_action": request.POST.getlist("_selected_action"),
-                "confirm_button_text": getattr(
-                    form_class_meta, "confirm_button_text", None
-                ),
-                "cancel_button_text": getattr(
-                    form_class_meta, "cancel_button_text", None
-                ),
+                "confirm_button_text": getattr(form.Meta, "confirm_button_text", None),
+                "cancel_button_text": getattr(form.Meta, "cancel_button_text", None),
             }
 
             return TemplateResponse(

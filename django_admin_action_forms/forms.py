@@ -72,10 +72,9 @@ class ActionForm(Form):
                     field.queryset = queryset.complex_filter(limit_choices_to)
 
     def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
-        meta: ActionForm.Meta = getattr(self, "Meta", None)
-        autocomplete_fields = getattr(meta, "autocomplete_fields", [])
-        filter_horizontal = getattr(meta, "filter_horizontal", [])
-        filter_vertical = getattr(meta, "filter_vertical", [])
+        autocomplete_fields = getattr(self.Meta, "autocomplete_fields", [])
+        filter_horizontal = getattr(self.Meta, "filter_horizontal", [])
+        filter_vertical = getattr(self.Meta, "filter_vertical", [])
 
         for field_name, field in self.fields.items():
             if field_name in filter_horizontal:
@@ -127,19 +126,17 @@ class ActionForm(Form):
                 )
 
     def _get_fieldsets(self, request: HttpRequest) -> "list[Fieldset]":
-        meta: ActionForm.Meta = getattr(self, "Meta", None)
-
         fieldsets = None
         fields = None
 
-        if hasattr(meta, "get_fieldsets") and callable(meta.get_fieldsets):
-            fieldsets = meta.get_fieldsets(request)
-        elif hasattr(meta, "fieldsets"):
-            fieldsets = meta.fieldsets
-        elif hasattr(meta, "get_fields") and callable(meta.get_fields):
-            fields = meta.get_fields(request)
-        elif hasattr(meta, "fields"):
-            fields = meta.fields
+        if hasattr(self.Meta, "get_fieldsets") and callable(self.Meta.get_fieldsets):
+            fieldsets = self.Meta.get_fieldsets(request)
+        elif hasattr(self.Meta, "fieldsets"):
+            fieldsets = self.Meta.fieldsets
+        elif hasattr(self.Meta, "get_fields") and callable(self.Meta.get_fields):
+            fields = self.Meta.get_fields(request)
+        elif hasattr(self.Meta, "fields"):
+            fields = self.Meta.fields
 
         if fields:
             some_fields_in_same_line = any(

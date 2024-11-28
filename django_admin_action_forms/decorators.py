@@ -86,7 +86,7 @@ def action_with_form(
                 "list_objects": getattr(form_class_meta, "list_objects", False),
                 "queryset": queryset,
                 "form": form,
-                "fieldsets": form._get_fieldsets_for_context(request),
+                "fieldsets": form.fieldsets,
                 "action": action,
                 "select_across": request.POST.get("select_across"),
                 "index": request.POST.get("index"),

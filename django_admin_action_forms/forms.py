@@ -50,13 +50,15 @@ class ActionForm(Form):
     ) -> None: ...
 
     def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
-        self._remove_excluded_fields(request)
+        self.fieldsets = self._get_fieldsets(request)
+
+        self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
 
-    def _remove_excluded_fields(self, request: HttpRequest) -> None:
-        for field_name in self._get_excluded_fields(request):
+    def _remove_excluded_fields(self) -> None:
+        for field_name in self._get_excluded_fields():
             self.fields.pop(field_name)
 
     def _apply_limit_choices_to_on_model_choice_fields(self) -> None:
@@ -124,7 +126,7 @@ class ActionForm(Form):
                     format_lazy("{} {}", help_text, msg) if help_text else msg
                 )
 
-    def _get_fieldsets_for_context(self, request: HttpRequest) -> "list[Fieldset]":
+    def _get_fieldsets(self, request: HttpRequest) -> "list[Fieldset]":
         meta: ActionForm.Meta = getattr(self, "Meta", None)
 
         fieldsets = None
@@ -165,9 +167,9 @@ class ActionForm(Form):
 
         return [Fieldset(form=self, fields=tuple(self.fields.keys()))]
 
-    def _get_included_fields(self, request: HttpRequest) -> "set[str]":
+    def _get_included_fields(self) -> "set[str]":
         field_names: "set[str]" = set()
-        for fieldset in self._get_fieldsets_for_context(request):
+        for fieldset in self.fieldsets:
             for field in fieldset.fields:
                 if isinstance(field, (list, tuple)):
                     field_names.update(field)
@@ -176,9 +178,9 @@ class ActionForm(Form):
 
         return field_names
 
-    def _get_excluded_fields(self, request: HttpRequest) -> "set[str]":
+    def _get_excluded_fields(self) -> "set[str]":
         all_fields = set(self.fields.keys())
-        included_fields = self._get_included_fields(request)
+        included_fields = self._get_included_fields()
 
         return all_fields.difference(included_fields)
 

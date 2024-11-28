@@ -181,6 +181,16 @@ class ActionForm(Form):
 
         return all_fields.difference(included_fields)
 
+    @property
+    def media(self):
+        media = super().media
+
+        # Adds "admin/js/collapse.js" in django<5.1 when any fieldset has "collapse" class
+        for fieldset in self.fieldsets:
+            media += fieldset.media
+
+        return media
+
     class Meta:
         list_objects: bool
         help_text: str

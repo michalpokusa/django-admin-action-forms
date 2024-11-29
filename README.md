@@ -274,8 +274,10 @@ def __post_init__(self, modeladmin, request, queryset):
     if request.user.is_superuser:
         self.fields["field1"].required = False
 
-    if queryset.count() > 25:
-        self.Meta.list_objects = False
+    class Meta(self.Meta):
+        list_objects = queryset.count() > 10
+
+    self.Meta = Meta
 ```
 
 ### AdminActionForm

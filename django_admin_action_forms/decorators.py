@@ -51,7 +51,12 @@ def action_with_form(
             app_config: AppConfig = modeladmin.opts.app_config
             model: Model = modeladmin.model
 
-            action = request.POST.getlist("action")[int(request.POST.get("index"))]
+            try:
+                action_index = int(request.POST.get("index", 0))
+            except ValueError:
+                action_index = 0
+
+            action = request.POST.getlist("action")[action_index]
 
             for field_name, field in form.fields.items():
                 field: Field
@@ -87,7 +92,6 @@ def action_with_form(
                 "fieldsets": form.fieldsets,
                 "action": action,
                 "select_across": request.POST.get("select_across"),
-                "index": request.POST.get("index"),
                 "selected_action": request.POST.getlist("_selected_action"),
                 "confirm_button_text": getattr(form.Meta, "confirm_button_text", None),
                 "cancel_button_text": getattr(form.Meta, "cancel_button_text", None),

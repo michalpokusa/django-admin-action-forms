@@ -1,11 +1,15 @@
 :root {
     --action-form-button-fg: var(--button-fg);
+    --action-form-button-hover-fg: var(--button-fg);
 
     --action-form-button-bg: var(--default-button-bg);
     --action-form-button-hover-bg: var(--default-button-hover-bg);
 
     --action-form-close-button-bg: var(--close-button-bg);
     --action-form-close-button-hover-bg: var(--close-button-hover-bg);
+
+    --action-form-close-button-fg: var(--button-fg);
+    --action-form-close-button-hover-fg: var(--button-fg);
 }
 
 select.admin-actionform-autocomplete {
@@ -21,14 +25,17 @@ select.admin-actionform-autocomplete {
 }
 .action-form form input[type="submit"]:hover {
     background: var(--action-form-button-hover-bg);
+    color: var(--action-form-button-hover-fg);
 }
 
 /* Action form "Cancel" button */
 .action-form form .cancel-link {
     background: var(--action-form-close-button-bg);
     padding: 10px 15px;
+    color: var(--action-form-close-button-fg);
     margin: 0 0 0 10px;
 }
 .action-form form .cancel-link:hover {
     background: var(--action-form-close-button-hover-bg);
+    color: var(--action-form-close-button-hover-fg);
 }

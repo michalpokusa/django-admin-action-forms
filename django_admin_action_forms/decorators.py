@@ -4,12 +4,10 @@ from functools import wraps
 from django.apps import AppConfig
 from django.contrib.admin import AdminSite, ModelAdmin
 from django.db.models import Model, QuerySet
-from django.forms import Field
 from django.http import HttpRequest, HttpResponse
 from django.template.response import TemplateResponse
 
 from .forms import ActionForm
-from .widgets import AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget
 
 
 def action_with_form(
@@ -61,24 +59,6 @@ def action_with_form(
                 action_index = 0
 
             action = request.POST.getlist("action")[action_index]
-
-            for field_name, field in form.fields.items():
-                field: Field
-
-                # Additional attributes required for autocomplete fields
-                if isinstance(
-                    field.widget,
-                    (AutocompleteModelChoiceWidget, AutocompleteModelMultiChoiceWidget),
-                ):
-                    field.widget.attrs.update(
-                        {
-                            "data-admin-site": admin_site.name,
-                            "data-app-label": model._meta.app_label,
-                            "data-model-name": model._meta.model_name,
-                            "data-action-name": action,
-                            "data-field-name": field_name,
-                        }
-                    )
 
             context = {
                 **admin_site.each_context(request),

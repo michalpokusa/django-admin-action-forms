@@ -36,6 +36,7 @@ from django.utils.translation import gettext_lazy
 from .widgets import (
     FilterHorizontalWidget,
     FilterVerticalWidget,
+    ActionFormAutocompleteMixin,
     AutocompleteModelChoiceWidget,
     AutocompleteModelMultiChoiceWidget,
 )
@@ -58,6 +59,13 @@ class ActionForm(Form):
         self.request = request
         self.queryset = queryset
 
+        try:
+            action_index = int(request.POST.get("index", 0))
+        except ValueError:
+            action_index = 0
+
+        self.action = request.POST.getlist("action")[action_index]
+
         super().__init__(*args, **kwargs)
         self.__post_init__(modeladmin, request, queryset)
 
@@ -65,6 +73,7 @@ class ActionForm(Form):
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
+        self._add_autocomplete_fields_widget_attrs()
 
     def __post_init__(
         self, modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet
@@ -136,6 +145,19 @@ class ActionForm(Form):
                 help_text = field.help_text
                 field.help_text = (
                     format_lazy("{} {}", help_text, msg) if help_text else msg
+                )
+
+    def _add_autocomplete_fields_widget_attrs(self) -> None:
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, ActionFormAutocompleteMixin):
+                field.widget.attrs.update(
+                    {
+                        "data-admin-site": self.modeladmin.admin_site.name,
+                        "data-app-label": self.modeladmin.opts.app_config.label,
+                        "data-model-name": self.modeladmin.opts.model_name,
+                        "data-action-name": self.action,
+                        "data-field-name": field_name,
+                    }
                 )
 
     @cached_property

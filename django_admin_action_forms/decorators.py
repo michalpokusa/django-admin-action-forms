@@ -1,11 +1,11 @@
+from collections.abc import Callable
 from functools import wraps
-from types import FunctionType
 
 from django.apps import AppConfig
 from django.contrib.admin import AdminSite, ModelAdmin
 from django.db.models import Model, QuerySet
 from django.forms import Field
-from django.http import HttpRequest
+from django.http import HttpRequest, HttpResponse
 from django.template.response import TemplateResponse
 
 from .forms import ActionForm
@@ -22,7 +22,7 @@ def action_with_form(
     Decorator used to create an action with a form, alternative to the default ``@admin.action`` decorator.
     """
 
-    def decorator(action_function: FunctionType):
+    def decorator(action_function: Callable[..., None | HttpResponse]):
 
         @wraps(action_function)
         def wrapper(*args):

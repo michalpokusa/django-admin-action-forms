@@ -29,6 +29,7 @@ from django.forms import (
 )
 from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
+from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 
@@ -45,17 +46,29 @@ class ActionForm(Form):
     Base class for action forms used in admin actions.
     """
 
-    def __post_init__(
-        self, modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet
-    ) -> None: ...
+    def __init__(
+        self,
+        modeladmin: ModelAdmin,
+        request: HttpRequest,
+        queryset: QuerySet,
+        *args,
+        **kwargs
+    ) -> None:
+        self.modeladmin = modeladmin
+        self.request = request
+        self.queryset = queryset
 
-    def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
-        self.fieldsets = self._get_fieldsets(request)
+        super().__init__(*args, **kwargs)
+        self.__post_init__(modeladmin, request, queryset)
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
+
+    def __post_init__(
+        self, modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet
+    ) -> None: ...
 
     def _remove_excluded_fields(self) -> None:
         for field_name in self._get_excluded_fields():
@@ -125,16 +138,17 @@ class ActionForm(Form):
                     format_lazy("{} {}", help_text, msg) if help_text else msg
                 )
 
-    def _get_fieldsets(self, request: HttpRequest) -> "list[Fieldset]":
+    @cached_property
+    def fieldsets(self) -> "list[Fieldset]":
         fieldsets = None
         fields = None
 
         if hasattr(self.Meta, "get_fieldsets") and callable(self.Meta.get_fieldsets):
-            fieldsets = self.Meta.get_fieldsets(request)
+            fieldsets = self.Meta.get_fieldsets(self.request)
         elif hasattr(self.Meta, "fieldsets"):
             fieldsets = self.Meta.fieldsets
         elif hasattr(self.Meta, "get_fields") and callable(self.Meta.get_fields):
-            fields = self.Meta.get_fields(request)
+            fields = self.Meta.get_fields(self.request)
         elif hasattr(self.Meta, "fields"):
             fields = self.Meta.fields
 
@@ -229,13 +243,12 @@ class AdminActionForm(ActionForm):
     with corresponding admin widgets.
     """
 
-    def _convert_from_form_to_actionform(self, request: HttpRequest) -> None:
-        super()._convert_from_form_to_actionform(request)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self._replace_default_field_widgets_with_admin_widgets()
 
     def _replace_default_field_widgets_with_admin_widgets(self) -> None:
         for field in self.fields.values():
-            field: Field
             widget_attrs = field.widget.attrs
 
             if is_field_with_default_widget(field, CharField):

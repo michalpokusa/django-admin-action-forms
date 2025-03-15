@@ -37,12 +37,16 @@ def action_with_form(
             rest = args[2:]
 
             form = (
-                form_class(data=request.POST, files=request.FILES)
-                if "action_form" in request.POST
-                else form_class()
+                form_class(modeladmin, request, queryset)
+                if "action_form" not in request.POST
+                else form_class(
+                    modeladmin,
+                    request,
+                    queryset,
+                    data=request.POST,
+                    files=request.FILES,
+                )
             )
-            form.__post_init__(modeladmin, request, queryset)
-            form._convert_from_form_to_actionform(request)
 
             if form.is_valid():
                 return action_function(modeladmin, request, *rest, form.cleaned_data)

@@ -29,6 +29,7 @@ from django.forms import (
 )
 from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
+from django.template.response import TemplateResponse
 from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
@@ -216,6 +217,36 @@ class ActionForm(Form):
         included_fields = self._get_included_fields()
 
         return all_fields.difference(included_fields)
+
+    def action_form_view(self, request: HttpRequest, extra_context=None):
+        admin_site = self.modeladmin.admin_site
+        app_config = self.modeladmin.opts.app_config
+
+        context = {
+            **admin_site.each_context(request),
+            "title": self.modeladmin.get_actions(request).get(self.action)[2],
+            "subtitle": None,
+            "app_label": app_config.label,
+            "app_verbose_name": app_config.verbose_name,
+            "model_name": self.modeladmin.opts.model_name,
+            "model_verbose_name": self.modeladmin.opts.verbose_name,
+            "model_verbose_name_plural": self.modeladmin.opts.verbose_name_plural,
+            "help_text": getattr(self.Meta, "help_text", None),
+            "list_objects": getattr(self.Meta, "list_objects", False),
+            "queryset": self.queryset,
+            "form": self,
+            "fieldsets": self.fieldsets,
+            "action": self.action,
+            "select_across": request.POST.get("select_across"),
+            "selected_action": request.POST.getlist("_selected_action"),
+            "confirm_button_text": getattr(self.Meta, "confirm_button_text", None),
+            "cancel_button_text": getattr(self.Meta, "cancel_button_text", None),
+            **(extra_context or {}),
+        }
+
+        return TemplateResponse(
+            request, "admin/django_admin_action_forms/action_form.html", context
+        )
 
     @property
     def media(self):

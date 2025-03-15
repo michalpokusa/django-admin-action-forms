@@ -48,6 +48,8 @@ class ActionForm(Form):
     Base class for action forms used in admin actions.
     """
 
+    template = "admin/django_admin_action_forms/action_form.html"
+
     def __init__(
         self,
         modeladmin: ModelAdmin,
@@ -244,9 +246,7 @@ class ActionForm(Form):
             **(extra_context or {}),
         }
 
-        return TemplateResponse(
-            request, "admin/django_admin_action_forms/action_form.html", context
-        )
+        return TemplateResponse(request, self.template, context)
 
     @property
     def media(self):

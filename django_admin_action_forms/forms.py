@@ -26,6 +26,7 @@ from django.forms import (
     TimeField,
     URLField,
     UUIDField,
+    Widget,
 )
 from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
@@ -261,13 +262,6 @@ class ActionForm(Form):
         ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None": ...
 
 
-def is_field_with_default_widget(field: Field, field_type: "type[Field]") -> bool:
-    """
-    Checks if the field is exactly of the specified type and has the default widget.
-    """
-    return type(field) is field_type and type(field.widget) is field_type.widget
-
-
 class AdminActionForm(ActionForm):
     """
     Extended `ActionForm` class for admin actions. It replaces default field widgets
@@ -278,36 +272,26 @@ class AdminActionForm(ActionForm):
         super().__init__(*args, **kwargs)
         self._replace_default_field_widgets_with_admin_widgets()
 
+    ADMIN_WIDGETS_FOR_FIELDS: "dict[type[Field], type[Widget]]" = {
+        CharField: AdminTextInputWidget,
+        DateField: AdminDateWidget,
+        EmailField: AdminEmailInputWidget,
+        FileField: AdminFileWidget,
+        IntegerField: AdminIntegerFieldWidget,
+        SplitDateTimeField: AdminSplitDateTime,
+        TimeField: AdminTimeWidget,
+        URLField: AdminURLFieldWidget,
+        UUIDField: AdminUUIDInputWidget,
+    }
+
     def _replace_default_field_widgets_with_admin_widgets(self) -> None:
         for field in self.fields.values():
-            widget_attrs = field.widget.attrs
+            if type(field.widget) is type(field).widget:
+                admin_widget_type = self.ADMIN_WIDGETS_FOR_FIELDS.get(type(field))
 
-            if is_field_with_default_widget(field, CharField):
-                field.widget = AdminTextInputWidget()
+                if admin_widget_type is not None:
+                    widget_attrs = field.widget.attrs
 
-            elif is_field_with_default_widget(field, DateField):
-                field.widget = AdminDateWidget()
-
-            elif is_field_with_default_widget(field, EmailField):
-                field.widget = AdminEmailInputWidget()
-
-            elif is_field_with_default_widget(field, FileField):
-                field.widget = AdminFileWidget()
-
-            elif is_field_with_default_widget(field, IntegerField):
-                field.widget = AdminIntegerFieldWidget()
-
-            elif is_field_with_default_widget(field, SplitDateTimeField):
-                field.widget = AdminSplitDateTime()
-
-            elif is_field_with_default_widget(field, TimeField):
-                field.widget = AdminTimeWidget()
-
-            elif is_field_with_default_widget(field, URLField):
-                field.widget = AdminURLFieldWidget()
-
-            elif is_field_with_default_widget(field, UUIDField):
-                field.widget = AdminUUIDInputWidget()
-
-            field.widget.is_required = field.required
-            field.widget.attrs.update(widget_attrs)
+                    field.widget = admin_widget_type()
+                    field.widget.is_required = field.required
+                    field.widget.attrs.update(widget_attrs)

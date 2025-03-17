@@ -34,6 +34,7 @@ from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 
+from .options import Options
 from .widgets import (
     FilterHorizontalWidget,
     FilterVerticalWidget,
@@ -70,6 +71,7 @@ class ActionForm(Form):
         self.action = request.POST.getlist("action")[action_index]
 
         super().__init__(*args, **kwargs)
+        self.opts = Options(self.Meta)
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
@@ -92,9 +94,9 @@ class ActionForm(Form):
                     field.queryset = queryset.complex_filter(limit_choices_to)
 
     def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
-        autocomplete_fields = getattr(self.Meta, "autocomplete_fields", [])
-        filter_horizontal = getattr(self.Meta, "filter_horizontal", [])
-        filter_vertical = getattr(self.Meta, "filter_vertical", [])
+        autocomplete_fields = self.opts.autocomplete_fields
+        filter_horizontal = self.opts.filter_horizontal
+        filter_vertical = self.opts.filter_vertical
 
         for field_name, field in self.fields.items():
             if field_name in filter_horizontal:
@@ -128,7 +130,6 @@ class ActionForm(Form):
 
     def _add_default_selectmultiple_widget_help_text(self) -> None:
         for field in self.fields.values():
-            field: Field
             if (
                 isinstance(field.widget, SelectMultiple)
                 and field.widget.allow_multiple_selected
@@ -160,39 +161,21 @@ class ActionForm(Form):
 
     @cached_property
     def fieldsets(self) -> "list[Fieldset]":
-        fieldsets = None
-        fields = None
 
-        if hasattr(self.Meta, "get_fieldsets") and callable(self.Meta.get_fieldsets):
-            fieldsets = self.Meta.get_fieldsets(self.request)
-        elif hasattr(self.Meta, "fieldsets"):
-            fieldsets = self.Meta.fieldsets
-        elif hasattr(self.Meta, "get_fields") and callable(self.Meta.get_fields):
-            fields = self.Meta.get_fields(self.request)
-        elif hasattr(self.Meta, "fields"):
-            fields = self.Meta.fields
-
-        if fields:
-            some_fields_in_same_line = any(
-                isinstance(field_name, (list, tuple)) for field_name in fields or []
-            )
-
-            if some_fields_in_same_line:
-                fieldsets = [(None, {"fields": fields})]
-                fields = None
-
+        fieldsets = self.opts.get_fieldsets(self.request)
         if fieldsets is not None:
             return [
                 Fieldset(
                     form=self,
-                    name=fieldset[0],
-                    fields=tuple(fieldset[1].get("fields", [])),
-                    classes=tuple(fieldset[1].get("classes", [])),
-                    description=fieldset[1].get("description", None),
+                    name=name,
+                    fields=field_options.get("fields", ()),
+                    classes=field_options.get("classes", ()),
+                    description=field_options.get("description", None),
                 )
-                for fieldset in fieldsets
+                for name, field_options in fieldsets
             ]
 
+        fields = self.opts.get_fields(self.request)
         if fields is not None:
             return [Fieldset(form=self, fields=tuple(fields))]
 
@@ -228,16 +211,16 @@ class ActionForm(Form):
             "model_name": self.modeladmin.opts.model_name,
             "model_verbose_name": self.modeladmin.opts.verbose_name,
             "model_verbose_name_plural": self.modeladmin.opts.verbose_name_plural,
-            "help_text": getattr(self.Meta, "help_text", None),
-            "list_objects": getattr(self.Meta, "list_objects", False),
+            "help_text": self.opts.help_text,
+            "list_objects": self.opts.list_objects,
             "queryset": self.queryset,
             "form": self,
             "fieldsets": self.fieldsets,
             "action": self.action,
             "select_across": request.POST.get("select_across"),
             "selected_action": request.POST.getlist("_selected_action"),
-            "confirm_button_text": getattr(self.Meta, "confirm_button_text", None),
-            "cancel_button_text": getattr(self.Meta, "cancel_button_text", None),
+            "confirm_button_text": self.opts.confirm_button_text,
+            "cancel_button_text": self.opts.cancel_button_text,
             **(extra_context or {}),
         }
 
@@ -255,10 +238,12 @@ class ActionForm(Form):
 
     class Meta:
         list_objects: bool
-        help_text: str
+        help_text: "str | None"
 
-        fields: "list[str | tuple[str, ...]]"
-        fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]"
+        fields: "list[str | tuple[str, ...]] | None"
+        fieldsets: (
+            "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
+        )
 
         autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
@@ -267,15 +252,13 @@ class ActionForm(Form):
         confirm_button_text: str
         cancel_button_text: str
 
-        @classmethod
-        def get_fields(cls, request: HttpRequest) -> "list[str | tuple[str, ...]]":
-            return getattr(cls, "fields", None)
+        def get_fields(
+            self, request: HttpRequest
+        ) -> "list[str | tuple[str, ...]] | None": ...
 
-        @classmethod
         def get_fieldsets(
-            cls, request: HttpRequest
-        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]":
-            return getattr(cls, "fieldsets", None)
+            self, request: HttpRequest
+        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None": ...
 
 
 def is_field_with_default_widget(field: Field, field_type: "type[Field]") -> bool:

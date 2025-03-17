@@ -70,17 +70,12 @@ class ActionForm(Form):
         self.action = request.POST.getlist("action")[action_index]
 
         super().__init__(*args, **kwargs)
-        self.__post_init__(modeladmin, request, queryset)
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
         self._add_autocomplete_fields_widget_attrs()
-
-    def __post_init__(
-        self, modeladmin: ModelAdmin, request: HttpRequest, queryset: QuerySet
-    ) -> None: ...
 
     def _remove_excluded_fields(self) -> None:
         for field_name in self._get_excluded_fields():

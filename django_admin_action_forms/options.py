@@ -1,13 +1,17 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .forms import ActionForm
+
+
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
-
-from .forms import ActionForm
 
 
 class Options:
 
     def __init__(self, meta: type):
-        self._meta: ActionForm.Meta = meta
+        self._meta: "ActionForm.Meta" = meta
 
     @property
     def list_objects(self) -> bool:
@@ -48,13 +52,13 @@ class Options:
         return getattr(self._meta, "cancel_button_text", gettext_lazy("Cancel"))
 
     def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]] | None":
-        if hasattr(self, "get_fields") and callable(self.get_fields):
-            return self.get_fields(request)
+        if hasattr(self._meta, "get_fields"):
+            return self._meta.get_fields(request)
         return self.fields
 
     def get_fieldsets(
         self, request: HttpRequest
     ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None":
-        if hasattr(self, "get_fieldsets") and callable(self.get_fieldsets):
-            return self.get_fieldsets(request)
+        if hasattr(self._meta, "get_fieldsets"):
+            return self._meta.get_fieldsets(request)
         return self.fieldsets

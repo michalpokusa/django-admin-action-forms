@@ -34,7 +34,7 @@ def action_with_form(
 
             form = (
                 form_class(modeladmin, request, queryset)
-                if "action_form" not in request.POST
+                if request.POST.get("submitted_from_changelist_view", "0") == "1"
                 else form_class(
                     modeladmin,
                     request,

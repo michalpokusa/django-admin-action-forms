@@ -64,7 +64,6 @@
         {% for item in selected_action %}
             <input type="hidden" name="_selected_action" value="{{ item }}" />
         {% endfor %}
-        <input type="hidden" name="action_form" />
 
         <input type="submit" value="{% if confirm_button_text %}{{ confirm_button_text }}{% else %}{% translate "Confirm" %}{% endif %}">
         <a href="#" class="button cancel-link">{% if cancel_button_text %}{{ cancel_button_text }}{% else %}{% translate "Cancel" %}{% endif %}</a>

@@ -50,7 +50,7 @@ class ActionForm(Form):
     Base class for action forms used in admin actions.
     """
 
-    template = "admin/django_admin_action_forms/action_form.html"
+    template = "django_admin_action_forms/action_form.html"
 
     def __init__(
         self,
@@ -233,7 +233,7 @@ class ActionForm(Form):
             "form": self,
             "fieldsets": self.fieldsets,
             "action": self.action,
-            "select_across": request.POST.get("select_across"),
+            "select_across": request.POST.get("select_across", "0"),
             "selected_action": request.POST.getlist("_selected_action"),
             "confirm_button_text": self.opts.confirm_button_text,
             "cancel_button_text": self.opts.cancel_button_text,

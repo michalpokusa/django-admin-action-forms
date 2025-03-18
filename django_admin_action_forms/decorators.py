@@ -18,7 +18,7 @@ def action_with_form(
     Decorator used to create an action with a form, alternative to the default ``@admin.action`` decorator.
     """
 
-    def decorator(action_function: Callable[..., None | HttpResponse]):
+    def decorator(action_function: "Callable[..., None | HttpResponse]"):
 
         @wraps(action_function)
         def wrapper(*args):

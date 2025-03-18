@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import ActionForm
 from django.forms import CharField, HiddenInput
@@ -7,7 +9,9 @@ from django.template.response import TemplateResponse
 
 class AdminActionFormsMixin(ModelAdmin):
 
-    def changelist_view(self, request: HttpRequest, extra_context=None):
+    def changelist_view(
+        self, request: HttpRequest, extra_context: "dict[str, Any] | None" = None
+    ):
         response = super().changelist_view(request, extra_context)
 
         if not isinstance(response, TemplateResponse):

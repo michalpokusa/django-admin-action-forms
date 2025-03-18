@@ -89,7 +89,11 @@ class ActionForm(Form):
 
         if fieldsets is not None:
             for name, field_options in fieldsets:
-                included_fields.update(field_options.get("fields", ()))
+                for field in field_options.get("fields", ()):
+                    if isinstance(field, (list, tuple)):
+                        included_fields.update(field)
+                    else:
+                        included_fields.add(field)
 
         elif fields is not None:
             for field in fields:
@@ -208,7 +212,7 @@ class ActionForm(Form):
     def media(self):
         media = super().media
 
-        # Adds "admin/js/collapse.js" in django<5.1 when any fieldset has "collapse" class
+        # In Django<5.1, this adds "admin/js/collapse.js" when any fieldset has "collapse" class
         for fieldset in self.fieldsets:
             media += fieldset.media
 

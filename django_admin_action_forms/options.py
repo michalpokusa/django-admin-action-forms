@@ -11,7 +11,7 @@ from django.utils.translation import gettext_lazy
 class Options:
 
     def __init__(self, meta: type):
-        self._meta: "ActionForm.Meta" = meta
+        self._meta: "ActionForm.Meta" = meta()
 
     @property
     def list_objects(self) -> bool:

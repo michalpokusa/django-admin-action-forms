@@ -78,10 +78,32 @@ class ActionForm(Form):
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_and_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
-        self._add_autocomplete_fields_widget_attrs()
+        self._add_autocomplete_widget_attrs()
 
     def _remove_excluded_fields(self) -> None:
-        for field_name in self._get_excluded_fields():
+        all_fields = set(self.fields.keys())
+        included_fields: "set[str]" = set()
+
+        fieldsets = self.opts.get_fieldsets(self.request)
+        fields = self.opts.get_fields(self.request)
+
+        if fieldsets is not None:
+            for name, field_options in fieldsets:
+                included_fields.update(field_options.get("fields", ()))
+
+        elif fields is not None:
+            for field in fields:
+                if isinstance(field, (list, tuple)):
+                    included_fields.update(field)
+                else:
+                    included_fields.add(field)
+
+        else:
+            included_fields = all_fields
+
+        excluded_fields = all_fields.difference(included_fields)
+
+        for field_name in excluded_fields:
             self.fields.pop(field_name)
 
     def _apply_limit_choices_to_on_model_choice_fields(self) -> None:
@@ -147,7 +169,7 @@ class ActionForm(Form):
                     format_lazy("{} {}", help_text, msg) if help_text else msg
                 )
 
-    def _add_autocomplete_fields_widget_attrs(self) -> None:
+    def _add_autocomplete_widget_attrs(self) -> None:
         for field_name, field in self.fields.items():
             if isinstance(field.widget, ActionFormAutocompleteMixin):
                 field.widget.attrs.update(
@@ -182,24 +204,17 @@ class ActionForm(Form):
 
         return [Fieldset(form=self, fields=tuple(self.fields.keys()))]
 
-    def _get_included_fields(self) -> "set[str]":
-        field_names: "set[str]" = set()
+    @property
+    def media(self):
+        media = super().media
+
+        # Adds "admin/js/collapse.js" in django<5.1 when any fieldset has "collapse" class
         for fieldset in self.fieldsets:
-            for field in fieldset.fields:
-                if isinstance(field, (list, tuple)):
-                    field_names.update(field)
-                else:
-                    field_names.add(field)
+            media += fieldset.media
 
-        return field_names
+        return media
 
-    def _get_excluded_fields(self) -> "set[str]":
-        all_fields = set(self.fields.keys())
-        included_fields = self._get_included_fields()
-
-        return all_fields.difference(included_fields)
-
-    def action_form_view(self, request: HttpRequest, extra_context=None):
+    def action_form_view(self, request: HttpRequest, extra_context: dict = None):
         admin_site = self.modeladmin.admin_site
         app_config = self.modeladmin.opts.app_config
 
@@ -226,16 +241,6 @@ class ActionForm(Form):
         }
 
         return TemplateResponse(request, self.template, context)
-
-    @property
-    def media(self):
-        media = super().media
-
-        # Adds "admin/js/collapse.js" in django<5.1 when any fieldset has "collapse" class
-        for fieldset in self.fieldsets:
-            media += fieldset.media
-
-        return media
 
     class Meta:
         list_objects: bool

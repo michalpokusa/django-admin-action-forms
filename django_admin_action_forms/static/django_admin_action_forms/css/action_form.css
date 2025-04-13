@@ -16,7 +16,7 @@ select.admin-actionform-autocomplete {
     width: 20em;
 }
 
-/* Action form "Confirm" button */
+/* "Confirm" button */
 .action-form form input[type="submit"] {
     background: var(--action-form-button-bg);
     border-radius: 4px;
@@ -28,7 +28,7 @@ select.admin-actionform-autocomplete {
     color: var(--action-form-button-hover-fg);
 }
 
-/* Action form "Cancel" button */
+/* "Cancel" button */
 .action-form form .cancel-link {
     background: var(--action-form-close-button-bg);
     padding: 10px 15px;

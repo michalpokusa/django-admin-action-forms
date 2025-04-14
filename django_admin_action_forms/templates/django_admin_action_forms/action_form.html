@@ -28,44 +28,50 @@
 
 {% block content %}
 
-    {% if help_text %}
-        <p>{{ help_text }}</p>
-    {% endif %}
+    {% block help_text %}
+        {% if help_text %}
+            <p>{{ help_text }}</p>
+        {% endif %}
+    {% endblock help_text %}
 
-    {% if list_objects %}
-        <h2>{% translate "Summary" %}</h2>
-        <ul>
-            <li>
-                {{ model_verbose_name_plural|capfirst }}: {{ queryset|length }}</a>
-            </li>
-        </ul>
+    {% block objects_list %}
+        {% if list_objects %}
+            <h2>{% translate "Summary" %}</h2>
+            <ul>
+                <li>
+                    {{ model_verbose_name_plural|capfirst }}: {{ queryset|length }}</a>
+                </li>
+            </ul>
 
-        <h2>{% translate "Objects" %}</h2>
-        <ul>
-            {% for object in queryset %}
-            <li>
-                {{ model_verbose_name|capfirst }}: <a href="{% url 'admin:'|add:app_label|add:'_'|add:model_name|add:'_change' object_id=object.pk %}">{{ object }}</a>
-            </li>
+            <h2>{% translate "Objects" %}</h2>
+            <ul>
+                {% for object in queryset %}
+                <li>
+                    {{ model_verbose_name|capfirst }}: <a href="{% url 'admin:'|add:app_label|add:'_'|add:model_name|add:'_change' object_id=object.pk %}">{{ object }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    {% endblock objects_list %}
+
+    {% block action_form %}
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            {{ form.non_field_errors }}
+
+            {% for fieldset in fieldsets %}
+                {% include "admin/includes/fieldset.html" %}
             {% endfor %}
-        </ul>
-    {% endif %}
 
-    <form method="post" enctype="multipart/form-data">
-        {% csrf_token %}
+            <input type="hidden" name="action" value="{{ action }}" />
+            <input type="hidden" name="select_across" value="{{ select_across }}" />
+            {% for item in selected_action %}
+                <input type="hidden" name="_selected_action" value="{{ item }}" />
+            {% endfor %}
 
-        {{ form.non_field_errors }}
-
-        {% for fieldset in fieldsets %}
-            {% include "admin/includes/fieldset.html" %}
-        {% endfor %}
-
-        <input type="hidden" name="action" value="{{ action }}" />
-        <input type="hidden" name="select_across" value="{{ select_across }}" />
-        {% for item in selected_action %}
-            <input type="hidden" name="_selected_action" value="{{ item }}" />
-        {% endfor %}
-
-        <input type="submit" value="{{ confirm_button_text }}">
-        <a href="#" class="button cancel-link">{{ cancel_button_text }}</a>
-    </form>
+            <input type="submit" value="{{ confirm_button_text }}">
+            <a href="#" class="button cancel-link">{{ cancel_button_text }}</a>
+        </form>
+    {% endblock action_form %}
 {% endblock %}

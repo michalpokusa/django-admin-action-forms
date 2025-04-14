@@ -10,46 +10,32 @@ from django.utils.translation import gettext_lazy
 
 class Options:
 
+    list_objects: bool
+    help_text: "str | None"
+    fields: "list[str | tuple[str, ...]] | None"
+    fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
+    autocomplete_fields: "list[str]"
+    filter_horizontal: "list[str]"
+    filter_vertical: "list[str]"
+    confirm_button_text: str
+    cancel_button_text: str
+
     def __init__(self, meta: type):
         self._meta: "ActionForm.Meta" = meta()
 
-    @property
-    def list_objects(self) -> bool:
-        return getattr(self._meta, "list_objects", False)
-
-    @property
-    def help_text(self) -> "str | None":
-        return getattr(self._meta, "help_text", None)
-
-    @property
-    def fields(self) -> "list[str | tuple[str, ...]] | None":
-        return getattr(self._meta, "fields", None)
-
-    @property
-    def fieldsets(
-        self,
-    ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None":
-        return getattr(self._meta, "fieldsets", None)
-
-    @property
-    def autocomplete_fields(self) -> "list[str]":
-        return getattr(self._meta, "autocomplete_fields", [])
-
-    @property
-    def filter_horizontal(self) -> "list[str]":
-        return getattr(self._meta, "filter_horizontal", [])
-
-    @property
-    def filter_vertical(self) -> "list[str]":
-        return getattr(self._meta, "filter_vertical", [])
-
-    @property
-    def confirm_button_text(self) -> str:
-        return getattr(self._meta, "confirm_button_text", gettext_lazy("Confirm"))
-
-    @property
-    def cancel_button_text(self) -> str:
-        return getattr(self._meta, "cancel_button_text", gettext_lazy("Cancel"))
+        self.list_objects = getattr(self._meta, "list_objects", False)
+        self.help_text = getattr(self._meta, "help_text", None)
+        self.fields = getattr(self._meta, "fields", None)
+        self.fieldsets = getattr(self._meta, "fieldsets", None)
+        self.autocomplete_fields = getattr(self._meta, "autocomplete_fields", [])
+        self.filter_horizontal = getattr(self._meta, "filter_horizontal", [])
+        self.filter_vertical = getattr(self._meta, "filter_vertical", [])
+        self.confirm_button_text = getattr(
+            self._meta, "confirm_button_text", gettext_lazy("Confirm")
+        )
+        self.cancel_button_text = getattr(
+            self._meta, "cancel_button_text", gettext_lazy("Cancel")
+        )
 
     def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]] | None":
         if hasattr(self._meta, "get_fields"):

@@ -324,16 +324,16 @@ def custom_action(self, request, queryset, data):
 
 Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
-#### _def_ action_form_view(self, request, extra_context)
+#### _def_ action_form_view(<i>self, request, extra_context=None</i>)
 
 > _Added in version 2.0.0, replaced `__post_init__` method_
 
-Method used for rendering the intermediate page with form. It can be used to perform some checks before displaying the form and e.g. redirect to another page if the user is not allowed to perform the action. It can also be used for providing `extra_context` to the template, which can be especially useful when extending the action form template.
+Method used for rendering the intermediate page with form. It can be used to do some checks before displaying the form and e.g. redirect to another page if the user is not allowed to perform the action. It can also be used for providing `extra_context` to the template, which can be especially useful when extending the action form template.
 
 ```python
 class CustomActionForm(AdminActionForm):
 
-    def action_form_view(self, request, extra_context):
+    def action_form_view(self, request, extra_context=None):
         self.modeladmin.message_user(
             request, f"Warning, this action cannot be undone.", "warning"
         )
@@ -344,7 +344,7 @@ class CustomActionForm(AdminActionForm):
         self.opts.list_objects = self.queryset.count() > 10
 ```
 
-### AdminActionForm
+### _class_ AdminActionForm
 
 In addition to `ActionForm`, it replaces default widgets for most field types with corresponding Django admin widgets that e.g. add a interactive date picker or prepend a clickable link above URL fields.
 
@@ -367,7 +367,7 @@ class CustomActionForm(AdminActionForm):
     ...
 ```
 
-### ActionForm.Meta
+### _class_ ActionForm.Meta
 
 > Works similar to some <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#modeladmin-options">
     <code>ModelAdmin</code> options
@@ -423,7 +423,7 @@ Specifies the fields that should be displayed in the form. If `fieldsets` is pro
 fields = ["field1", ("field2", "field3")]
 ```
 
-#### _def_ get_fields(request)
+#### _def_ get_fields(<i>request</i>)
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fields">
     <code>ModelAdmin.get_fields()</code>
@@ -470,7 +470,7 @@ fieldsets = [
 ]
 ```
 
-#### _def_ get_fieldsets(request)
+#### _def_ get_fieldsets(<i>request</i>)
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fieldsets">
     <code>ModelAdmin.get_fieldsets()</code>

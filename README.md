@@ -19,7 +19,8 @@ Extension for the Django admin panel that allows passing additional parameters t
   - [Simple confirm form](#simple-confirm-form)
   - [Action with parameters](#action-with-parameters)
   - [Customizing action form layout](#customizing-action-form-layout)
-- [📄 Documentation](#-documentation)
+  - [Testing action forms](#testing-action-forms)
+- [📄 Reference](#-reference)
 
 ## 🚀 Overview
 
@@ -45,6 +46,7 @@ Simple and powerful!
 - No additional dependencies
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
 - Works with custom widgets, validators and other Django form features
+- Easy to test using Django's testing tools
 - Compatible with [django-no-queryset-admin-actions](https://pypi.org/project/django-no-queryset-admin-actions/)
 
 ## 🔌 Installation
@@ -101,7 +103,10 @@ Sometimes you do not need any additional parameters, but you want to display a c
 Let's create a simple action that will reset the password for selected users, but before that, we want to display a confirmation form.
 
 ```python
-from django_admin_action_forms import action_with_form, AdminActionForm
+from django.contrib import admin
+from django.contrib.auth.models import User
+
+from django_admin_action_forms import AdminActionFormsMixin, AdminActionForm, action_with_form
 
 
 class ResetUsersPasswordActionForm(AdminActionForm):
@@ -112,12 +117,17 @@ class ResetUsersPasswordActionForm(AdminActionForm):
         help_text = "Are you sure you want proceed with this action?"
 
 
-@action_with_form(
-    ResetUsersPasswordActionForm,
-    description="Reset password for selected users",
-)
-def reset_users_password_action(modeladmin, request, queryset, data):
-    modeladmin.message_user(request, f"Password reset for {queryset.count()} users.")
+@admin.register(User)
+class UserAdmin(AdminActionFormsMixin, admin.ModelAdmin):
+
+    @action_with_form(
+        ResetUsersPasswordActionForm,
+        description="Reset password for selected users",
+    )
+    def reset_users_password_action(self, request, queryset, data):
+        self.message_user(request, f"Password reset for {queryset.count()} users.")
+
+    actions = [reset_users_password_action]
 ```
 
 By doing this, we recreated the behavior of intermediate page from the built-in `delete_selected` action.
@@ -138,7 +148,11 @@ Let's create an action that will change the status of selected `Order` to a valu
 
 ```python
 from django import forms
+from django.contrib import admin
+
 from django_admin_action_forms import action_with_form, AdminActionForm
+
+from .models import Order
 
 
 class ChangeOrderStatusActionForm(AdminActionForm):
@@ -149,15 +163,20 @@ class ChangeOrderStatusActionForm(AdminActionForm):
     )
 
 
-@action_with_form(
-    ChangeOrderStatusActionForm,
-    description="Change status for selected Orders",
-)
-def change_order_status_action(modeladmin, request, queryset, data):
-    for order in queryset:
-        order.status = data["status"]
-        order.save()
-    modeladmin.message_user(request, f'Status changed to {data["status"].upper()} for {queryset.count()} orders.')
+@admin.register(Order)
+class OrderAdmin(AdminActionFormsMixin, admin.ModelAdmin):
+
+    @action_with_form(
+        ChangeOrderStatusActionForm,
+        description="Change status for selected Orders",
+    )
+    def change_order_status_action(self, request, queryset, data):
+        for order in queryset:
+            order.status = data["status"]
+            order.save()
+        self.message_user(request, f'Status changed to {data["status"].upper()} for {queryset.count()} orders.')
+
+    actions = [change_order_status_action]
 ```
 
 <img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/change-order-status.gif" width="100%">
@@ -170,7 +189,8 @@ Let's create an action form that will accept a discount for selected `Products` 
 
 ```python
 from django import forms
-from django_admin_action_forms import action_with_form, AdminActionForm
+
+from django_admin_action_forms import AdminActionForm
 
 
 class SetProductDiscountActionForm(AdminActionForm):
@@ -203,7 +223,8 @@ are selected using <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/
 
 ```python
 from django import forms
-from django_admin_action_forms import action_with_form, AdminActionForm
+
+from django_admin_action_forms import AdminActionForm
 
 
 class AssignToEmployeeActionForm(AdminActionForm):
@@ -229,9 +250,53 @@ class AssignToEmployeeActionForm(AdminActionForm):
 
 <img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/customizing-action-form-layout/assign-to-employee.gif" width="100%">
 
-## 📄 Documentation
+### Testing action forms
 
-#### <code>@action_with_form(<i>form_class, *, permissions=None, description=None</i>)</code>
+To test action forms, you can use Django's test client to send POST requests to model changelist with required data. The `action` and `_selected_action` fields are required, and the rest of the fields should match the action form fields.
+
+```python
+from django.contrib.auth.models import User
+from django.test import TestCase
+from django.urls import reverse
+
+
+class ShopProductsTests(TestCase):
+
+    def setUp(self):
+        User.objects.create_superuser(username="admin", password="password")
+        self.client.login(username="admin", password="password")
+
+    def test_set_product_discount_action_form_submit(self):
+        change_url = reverse("admin:shop_product_changelist")
+        data = {
+            "action": "set_product_discount",
+            "_selected_action": [10, 12, 14],
+            "discount": "20",
+            "valid_until": "2024-12-05",
+        }
+        response = self.client.post(change_url, data, follow=True)
+
+        self.assertContains(response.rendered_content, "Discount set to 20% for 3 products.")
+```
+
+## 📄 Reference
+
+### _class_ AdminActionFormsMixin
+
+Class that should be inherited by all `ModelAdmin` classes that will use action forms. It provides the logic for displaying the intermediate page and handling the form submission.
+
+```python
+from django.contrib import admin
+
+from django_admin_action_forms import AdminActionFormsMixin
+
+
+class ProductAdmin(AdminActionFormsMixin, admin.ModelAdmin):
+    ...
+
+```
+
+#### @action_with_form(<i>form_class, *, permissions=None, description=None</i>)
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/actions/#the-action-decorator">
     <code>@admin.action</code>
@@ -251,7 +316,7 @@ def custom_action(self, request, queryset, data):
     ...
 ```
 
-### ActionForm
+### _class_ ActionForm
 
 > Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#django.forms.Form">
     <code>Form</code>
@@ -259,25 +324,24 @@ def custom_action(self, request, queryset, data):
 
 Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
-#### _def_ \_\_post_init\_\_(modeladmin, request, queryset)
+#### _def_ action_form_view(self, request, extra_context)
 
-> _Added in version 1.2.0_
+> _Added in version 2.0.0, replaced `__post_init__` method_
 
-Method called after the form is initialized that can be used to modify the form fields, add additional ones or change the form's `Meta` options based on the `modeladmin` from which the action was called, `request` and `queryset` containing objects on which the action will be performed.
+Method used for rendering the intermediate page with form. It can be used to perform some checks before displaying the form and e.g. redirect to another page if the user is not allowed to perform the action. It can also be used for providing `extra_context` to the template, which can be especially useful when extending the action form template.
 
 ```python
-def __post_init__(self, modeladmin, request, queryset):
-    modeladmin.message_user(
-        request, f"Warning, this action cannot be undone.", "warning"
-    )
+class CustomActionForm(AdminActionForm):
 
-    if request.user.is_superuser:
-        self.fields["field1"].required = False
+    def action_form_view(self, request, extra_context):
+        self.modeladmin.message_user(
+            request, f"Warning, this action cannot be undone.", "warning"
+        )
 
-    class Meta(self.Meta):
-        list_objects = queryset.count() > 10
+        if request.user.is_superuser:
+            self.fields["field1"].required = False
 
-    self.Meta = Meta
+        self.opts.list_objects = self.queryset.count() > 10
 ```
 
 ### AdminActionForm
@@ -368,12 +432,13 @@ fields = ["field1", ("field2", "field3")]
 Method that can be used to dynamically determine fields that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fields, as described above in the [`fields`](#fields).
 
 ```python
-@classmethod
-def get_fields(cls, request):
-    if request.user.is_superuser:
-        return ["field1", "field2", "field3"]
-    else:
-        return ["field1", "field2"]
+class Meta:
+
+    def get_fields(self, request):
+        if request.user.is_superuser:
+            return ["field1", "field2", "field3"]
+        else:
+            return ["field1", "field2"]
 ```
 
 #### fieldsets
@@ -414,34 +479,35 @@ fieldsets = [
 Method that can be used to dynamically determine fieldsets that should be displayed in the form. Can be used to reorder, group or exclude fields based on the `request`. Should return a list of fieldsets, as described above in the [`fieldsets`](#fieldsets).
 
 ```python
-@classmethod
-def get_fieldsets(cls, request):
-    if request.user.is_superuser:
-        return [
-            (
-                None,
-                {
-                    "fields": ["field1", "field2", ("field3", "field4")],
-                },
-            ),
-            (
-                "Fieldset 2",
-                {
-                    "classes": ["collapse"],
-                    "fields": ["field5", ("field6", "field7")],
-                    "description": "This is a description for fieldset 2",
-                },
-            ),
-        ]
-    else:
-        return [
-            (
-                None,
-                {
-                    "fields": ["field1", "field2", ("field3", "field4")],
-                },
-            ),
-        ]
+class Meta:
+
+    def get_fieldsets(self, request):
+        if request.user.is_superuser:
+            return [
+                (
+                    None,
+                    {
+                        "fields": ["field1", "field2", ("field3", "field4")],
+                    },
+                ),
+                (
+                    "Fieldset 2",
+                    {
+                        "classes": ["collapse"],
+                        "fields": ["field5", ("field6", "field7")],
+                        "description": "This is a description for fieldset 2",
+                    },
+                ),
+            ]
+        else:
+            return [
+                (
+                    None,
+                    {
+                        "fields": ["field1", "field2", ("field3", "field4")],
+                    },
+                ),
+            ]
 ```
 
 > [!NOTE]

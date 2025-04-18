@@ -324,24 +324,46 @@ def custom_action(self, request, queryset, data):
 
 Base class for creating action forms responsible for all under the hood logic. Nearly always you will want to subclass `AdminActionForm` instead of `ActionForm`, as it provides additional features.
 
+#### _def_ \_\_init\_\_(<i>self, *args, **kwargs</i>)
+
+> From version 2.0.0 replaces `__post_init__` method
+
+Constructor for action forms that can be used to dynamically modify the form based on the `modeladmin`, `request` and `queryset` that are passed to the constructor and accessible from `self`.
+It is possible to add, modify and remove fields, change the layout of the form and other options from `Meta` class.
+
+```python
+class CustomActionForm(AdminActionForm):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if self.request.user.is_superuser:
+            self.fields["field1"].required = False
+
+        self.opts.fields = ["field2", "field1"]
+
+        self.opts.list_objects = self.queryset.count() > 10
+```
+
 #### _def_ action_form_view(<i>self, request, extra_context=None</i>)
 
-> _Added in version 2.0.0, replaced `__post_init__` method_
+> Added in version 2.0.0
 
-Method used for rendering the intermediate page with form. It can be used to do some checks before displaying the form and e.g. redirect to another page if the user is not allowed to perform the action. It can also be used for providing `extra_context` to the template, which can be especially useful when extending the action form template.
+Method used for rendering the intermediate page with form. It can be used to do some checks before displaying the form and e.g. redirect to another page if the user is not allowed to perform the action.
+It can also be used for providing `extra_context` to the template, which can be especially useful when extending the action form template.
 
 ```python
 class CustomActionForm(AdminActionForm):
 
     def action_form_view(self, request, extra_context=None):
-        self.modeladmin.message_user(
-            request, f"Warning, this action cannot be undone.", "warning"
-        )
 
-        if request.user.is_superuser:
-            self.fields["field1"].required = False
+        if self.queryset.count() > 3:
+            self.modeladmin.message_user(
+                request, "No more than 3 objects can be selected.", "error"
+            )
+            return HttpResponseRedirect(request.path)
 
-        self.opts.list_objects = self.queryset.count() > 10
+        return super().action_form_view(request, {"custom_context_value": ...})
 ```
 
 ### _class_ AdminActionForm

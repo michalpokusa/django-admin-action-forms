@@ -3,9 +3,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .forms import ActionForm
 
-
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
+
+from .formsets import AdminActionInlineFormSet
 
 
 class Options:
@@ -14,6 +15,7 @@ class Options:
     help_text: "str | None"
     fields: "list[str | tuple[str, ...]] | None"
     fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
+    inlines: "list[type[AdminActionInlineFormSet]]"
     autocomplete_fields: "list[str]"
     filter_horizontal: "list[str]"
     filter_vertical: "list[str]"
@@ -27,6 +29,7 @@ class Options:
         self.help_text = getattr(self._meta, "help_text", None)
         self.fields = getattr(self._meta, "fields", None)
         self.fieldsets = getattr(self._meta, "fieldsets", None)
+        self.inlines = getattr(self._meta, "inlines", None)
         self.autocomplete_fields = getattr(self._meta, "autocomplete_fields", [])
         self.filter_horizontal = getattr(self._meta, "filter_horizontal", [])
         self.filter_vertical = getattr(self._meta, "filter_vertical", [])
@@ -48,3 +51,10 @@ class Options:
         if hasattr(self._meta, "get_fieldsets"):
             return self._meta.get_fieldsets(request)
         return self.fieldsets
+
+    def get_inlines(
+        self, request: HttpRequest
+    ) -> "list[type[AdminActionInlineFormSet]]":
+        if hasattr(self._meta, "get_inlines"):
+            return self._meta.get_inlines(request)
+        return self.inlines

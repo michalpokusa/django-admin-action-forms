@@ -22,8 +22,9 @@ class Options:
     confirm_button_text: str
     cancel_button_text: str
 
-    def __init__(self, meta: type):
-        self._meta: "ActionForm.Meta" = meta()
+    def __init__(self, form: "ActionForm"):
+        self._form = form
+        self._meta = form.Meta()
 
         self.list_objects = getattr(self._meta, "list_objects", False)
         self.help_text = getattr(self._meta, "help_text", None)
@@ -40,21 +41,27 @@ class Options:
             self._meta, "cancel_button_text", gettext_lazy("Cancel")
         )
 
-    def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]] | None":
+    def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]]":
         if hasattr(self._meta, "get_fields"):
             return self._meta.get_fields(request)
-        return self.fields
+        if self.fields is not None:
+            return self.fields
+        return tuple(self._form.fields.keys())
 
     def get_fieldsets(
         self, request: HttpRequest
-    ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None":
+    ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]":
         if hasattr(self._meta, "get_fieldsets"):
             return self._meta.get_fieldsets(request)
-        return self.fieldsets
+        if self.fieldsets is not None:
+            return self.fieldsets
+        return [(None, {"fields": self.get_fields(request)})]
 
     def get_inlines(
         self, request: HttpRequest
     ) -> "list[type[AdminActionInlineFormSet]]":
         if hasattr(self._meta, "get_inlines"):
             return self._meta.get_inlines(request)
-        return self.inlines
+        if self.inlines is not None:
+            return self.inlines
+        return []

@@ -68,7 +68,7 @@ class ActionForm(Form):
         self.queryset = queryset
 
         super().__init__(*args, **kwargs)
-        self.opts = Options(self.Meta)
+        self.opts = Options(self)
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
@@ -259,13 +259,11 @@ class ActionForm(Form):
         confirm_button_text: str
         cancel_button_text: str
 
-        def get_fields(
-            self, request: HttpRequest
-        ) -> "list[str | tuple[str, ...]] | None": ...
+        def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]]": ...
 
         def get_fieldsets(
             self, request: HttpRequest
-        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None": ...
+        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]": ...
 
         def get_inlines(
             self, request: HttpRequest

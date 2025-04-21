@@ -174,6 +174,15 @@ class ActionForm(Form):
             for name, field_options in self.opts.get_fieldsets(self.request)
         ]
 
+    @cached_property
+    def inlines(self) -> "list[InlineAdminActionFormSet]":
+        return [
+            InlineFormSet(
+                self.modeladmin, self.action, self.request, self.queryset, self.is_bound
+            )
+            for InlineFormSet in self.opts.get_inlines(self.request)
+        ]
+
     @property
     def media(self):
         media = super().media
@@ -182,7 +191,20 @@ class ActionForm(Form):
         for fieldset in self.fieldsets:
             media += fieldset.media
 
+        for inline in self.inlines:
+            media += inline.media
+
         return media
+
+    def inlines_are_valid(self) -> bool:
+        return all(inline.is_valid() for inline in self.inlines)
+
+    @property
+    def inlines_cleaned_data(self):
+        return {
+            f"{inline.prefix}s": [data for data in inline.cleaned_data if data]
+            for inline in self.inlines
+        }
 
     def action_form_view(self, request: HttpRequest, extra_context: dict = None):
         admin_site = self.modeladmin.admin_site
@@ -202,6 +224,7 @@ class ActionForm(Form):
             "queryset": self.queryset,
             "form": self,
             "fieldsets": self.fieldsets,
+            "inlines": self.inlines,
             "action": self.action,
             "select_across": request.POST.get("select_across", "0"),
             "selected_action": request.POST.getlist("_selected_action"),

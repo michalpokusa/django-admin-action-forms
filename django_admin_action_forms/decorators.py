@@ -52,8 +52,13 @@ def action_with_form(
                 )
             )
 
-            if form.is_valid():
-                return action_function(modeladmin, request, *rest, form.cleaned_data)
+            if form.is_valid() and form.inlines_are_valid():
+                return action_function(
+                    modeladmin,
+                    request,
+                    *rest,
+                    {**form.cleaned_data, **form.inlines_cleaned_data},
+                )
 
             return form.action_form_view(request)
 

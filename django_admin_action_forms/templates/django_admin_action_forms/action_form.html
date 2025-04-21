@@ -64,6 +64,10 @@
                 {% include "admin/includes/fieldset.html" %}
             {% endfor %}
 
+            {% for inline_formset in inlines %}
+                {{ inline_formset }}
+            {% endfor %}
+
             <input type="hidden" name="action" value="{{ action }}" />
             <input type="hidden" name="select_across" value="{{ select_across }}" />
             {% for item in selected_action %}

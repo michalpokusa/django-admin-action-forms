@@ -15,7 +15,7 @@ except ImportError:
     from django.contrib.admin.widgets import SELECT2_TRANSLATIONS
     from django.utils.translation import get_language
 
-    # Copied django.contrib.admin.widgets.get_select2_language
+    # Polyfill copied from django.contrib.admin.widgets.get_select2_language
     def get_select2_language():
         lang_code = get_language()
         supported_code = SELECT2_TRANSLATIONS.get(lang_code)
@@ -79,7 +79,7 @@ class ActionFormAutocompleteMixin(Widget):
 
         return attrs
 
-    def optgroups(self, name, value, attr=None):
+    def optgroups(self, name: str, value: str, attr: str = None):
         default = (None, [], 0)
         groups = [default]
         has_selected = False

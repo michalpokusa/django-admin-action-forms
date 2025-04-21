@@ -1,3 +1,8 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .formsets import InlineAdminActionFormSet
+
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
 from django.contrib.admin.utils import flatten_fieldsets
@@ -36,7 +41,6 @@ from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 
-from .formsets import InlineAdminActionFormSet
 from .options import Options
 from .widgets import (
     FilterHorizontalWidget,
@@ -61,7 +65,7 @@ class ActionForm(Form):
         request: HttpRequest,
         queryset: QuerySet,
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         self.modeladmin = modeladmin
         self.action = action

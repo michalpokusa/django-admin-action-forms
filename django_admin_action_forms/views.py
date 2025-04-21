@@ -61,7 +61,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
 
         # Model
         try:
-            model = apps.get_model(GET_app_label, GET_model_name)
+            model: Model = apps.get_model(GET_app_label, GET_model_name)
         except LookupError:
             return HttpResponseBadRequest()
 

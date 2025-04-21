@@ -1,5 +1,6 @@
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
+from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.admin.widgets import (
     AdminDateWidget,
     AdminEmailInputWidget,
@@ -78,29 +79,7 @@ class ActionForm(Form):
 
     def _remove_excluded_fields(self) -> None:
         all_fields = set(self.fields.keys())
-        included_fields: "set[str]" = set()
-
-        fieldsets = self.opts.get_fieldsets(self.request)
-        fields = self.opts.get_fields(self.request)
-
-        if fieldsets is not None:
-            for name, field_options in fieldsets:
-                for field in field_options.get("fields", ()):
-                    if isinstance(field, (list, tuple)):
-                        included_fields.update(field)
-                    else:
-                        included_fields.add(field)
-
-        elif fields is not None:
-            for field in fields:
-                if isinstance(field, (list, tuple)):
-                    included_fields.update(field)
-                else:
-                    included_fields.add(field)
-
-        else:
-            included_fields = all_fields
-
+        included_fields = set(flatten_fieldsets(self.opts.get_fieldsets(self.request)))
         excluded_fields = all_fields.difference(included_fields)
 
         for field_name in excluded_fields:
@@ -184,25 +163,16 @@ class ActionForm(Form):
 
     @cached_property
     def fieldsets(self) -> "list[Fieldset]":
-
-        fieldsets = self.opts.get_fieldsets(self.request)
-        if fieldsets is not None:
-            return [
-                Fieldset(
-                    form=self,
-                    name=name,
-                    fields=field_options.get("fields", ()),
-                    classes=field_options.get("classes", ()),
-                    description=field_options.get("description", None),
-                )
-                for name, field_options in fieldsets
-            ]
-
-        fields = self.opts.get_fields(self.request)
-        if fields is not None:
-            return [Fieldset(form=self, fields=tuple(fields))]
-
-        return [Fieldset(form=self, fields=tuple(self.fields.keys()))]
+        return [
+            Fieldset(
+                form=self,
+                name=name,
+                fields=field_options.get("fields", ()),
+                classes=field_options.get("classes", ()),
+                description=field_options.get("description", None),
+            )
+            for name, field_options in self.opts.get_fieldsets(self.request)
+        ]
 
     @property
     def media(self):

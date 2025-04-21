@@ -56,21 +56,16 @@ class ActionForm(Form):
     def __init__(
         self,
         modeladmin: ModelAdmin,
+        action: str,
         request: HttpRequest,
         queryset: QuerySet,
         *args,
         **kwargs
     ) -> None:
         self.modeladmin = modeladmin
+        self.action = action
         self.request = request
         self.queryset = queryset
-
-        try:
-            action_index = int(request.POST.get("index", 0))
-        except ValueError:
-            action_index = 0
-
-        self.action = request.POST.getlist("action")[action_index]
 
         super().__init__(*args, **kwargs)
         self.opts = Options(self.Meta)

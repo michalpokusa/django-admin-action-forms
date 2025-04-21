@@ -1,0 +1,40 @@
+{% load i18n admin_urls %}
+<div class="js-inline-admin-formset inline-group"
+     id="{{ inline_action_formset.prefix }}-group"
+     data-inline-type="stacked"
+     data-inline-formset="{{ inline_action_formset.inline_formset_data }}">
+    <fieldset class="module {{ inline_action_formset.classes }}" aria-labelledby="{{ inline_action_formset.prefix }}-heading">
+        {% if inline_action_formset.is_collapsible and django_version_above_5_1_x %}<details><summary>{% endif %}
+        <h2 id="{{ inline_action_formset.prefix }}-heading" class="inline-heading">
+            {% if inline_action_formset.max_num == 1 %}
+                {{ inline_action_formset.verbose_name|capfirst }}
+            {% else %}
+                {{ inline_action_formset.verbose_name_plural|capfirst }}
+            {% endif %}
+        </h2>
+        {% if inline_action_formset.is_collapsible and django_version_above_5_1_x %}</summary>{% endif %}
+        {{ inline_action_formset.management_form }}
+        {{ inline_action_formset.non_form_errors }}
+
+        {% for inline_action_form in inline_action_formset %}
+            <div
+                class="inline-related
+                    {% if inline_action_form.original or inline_action_form.show_url %} has_original{% endif %}
+                    {% if forloop.last %} empty-form last-related{% endif %}"
+                id="{{ inline_action_formset.prefix }}-{% if forloop.last %}empty{% else %}{{ forloop.counter0 }}{% endif %}">
+                <h3>
+                    <b>{{ inline_action_formset.verbose_name|capfirst }}:</b>
+                    <span class="inline_label">#{{ forloop.counter }}</span>
+                </h3>
+                {% if inline_action_form.non_field_errors %}{{ inline_action_form.non_field_errors }}{% endif %}
+
+                {% with parent_counter=forloop.counter0 %}
+                    {% for fieldset in inline_action_form.fieldsets %}
+                        {% include "admin/includes/fieldset.html" with heading_level=4 id_prefix=parent_counter id_suffix=forloop.counter0 %}
+                    {% endfor %}
+                {% endwith %}
+            </div>
+        {% endfor %}
+        {% if inline_action_formset.is_collapsible and django_version_above_5_1_x %}</details>{% endif %}
+    </fieldset>
+</div>

@@ -36,7 +36,7 @@ from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 
-from .formsets import AdminActionInlineFormSet
+from .formsets import InlineAdminActionFormSet
 from .options import Options
 from .widgets import (
     FilterHorizontalWidget,
@@ -220,7 +220,7 @@ class ActionForm(Form):
         fieldsets: (
             "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
         )
-        inlines: "list[type[AdminActionInlineFormSet]]"
+        inlines: "list[type[InlineAdminActionFormSet]]"
 
         autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
@@ -237,7 +237,7 @@ class ActionForm(Form):
 
         def get_inlines(
             self, request: HttpRequest
-        ) -> "list[type[AdminActionInlineFormSet]]": ...
+        ) -> "list[type[InlineAdminActionFormSet]]": ...
 
 
 class AdminActionForm(ActionForm):
@@ -273,3 +273,9 @@ class AdminActionForm(ActionForm):
                     field.widget = admin_widget_type()
                     field.widget.is_required = field.required
                     field.widget.attrs.update(widget_attrs)
+
+
+class InlineActionForm(ActionForm): ...
+
+
+class InlineAdminActionForm(AdminActionForm, InlineActionForm): ...

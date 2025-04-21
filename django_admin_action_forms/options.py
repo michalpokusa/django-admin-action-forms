@@ -6,7 +6,7 @@ if TYPE_CHECKING:
 from django.http import HttpRequest
 from django.utils.translation import gettext_lazy
 
-from .formsets import AdminActionInlineFormSet
+from .formsets import InlineAdminActionFormSet
 
 
 class Options:
@@ -15,7 +15,7 @@ class Options:
     help_text: "str | None"
     fields: "list[str | tuple[str, ...]] | None"
     fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
-    inlines: "list[type[AdminActionInlineFormSet]]"
+    inlines: "list[type[InlineAdminActionFormSet]]"
     autocomplete_fields: "list[str]"
     filter_horizontal: "list[str]"
     filter_vertical: "list[str]"
@@ -59,7 +59,7 @@ class Options:
 
     def get_inlines(
         self, request: HttpRequest
-    ) -> "list[type[AdminActionInlineFormSet]]":
+    ) -> "list[type[InlineAdminActionFormSet]]":
         if hasattr(self._meta, "get_inlines"):
             return self._meta.get_inlines(request)
         if self.inlines is not None:

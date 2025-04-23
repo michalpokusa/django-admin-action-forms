@@ -112,6 +112,7 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
     def get_form_kwargs(self, index: int) -> "dict[str, Any]":
         return {
             **super().get_form_kwargs(index),
+            "formset": self,
             "modeladmin": self.modeladmin,
             "action": self.action,
             "request": self.request,

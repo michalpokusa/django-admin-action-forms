@@ -325,7 +325,17 @@ class AdminActionForm(ActionForm):
                     field.widget.attrs.update(widget_attrs)
 
 
-class InlineActionForm(ActionForm): ...
+class InlineActionForm(ActionForm):
+
+    def __init__(self, formset: "InlineAdminActionFormSet", *args, **kwargs):
+        self.formset = formset
+        super().__init__(*args, **kwargs)
+
+    def _add_autocomplete_widget_attrs(self):
+        super()._add_autocomplete_widget_attrs()
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, ActionFormAutocompleteMixin):
+                field.widget.attrs["data-inline-prefix"] = self.formset.prefix
 
 
 class InlineAdminActionForm(AdminActionForm, InlineActionForm): ...

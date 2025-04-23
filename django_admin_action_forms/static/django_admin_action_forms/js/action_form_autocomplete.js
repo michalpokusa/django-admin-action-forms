@@ -1,6 +1,8 @@
 // Modified `contrib/admin/static/admin/js/autocomplete.js`
 // Adds `admin_site` and `action_name` to the AJAX request data and changes the meaning of `field_name` to be the
 // ActionForm field that is being autocompleted.
+// When autocomplete is used inside inline, `field_name` is not enough and `inline_prefix` is needed to identify the correct field
+// and not use the field from the ActionForm that has the same name.
 
 'use strict';
 {
@@ -18,6 +20,7 @@
                             app_label: element.dataset.appLabel,
                             model_name: element.dataset.modelName,
                             action_name: element.dataset.actionName,
+                            inline_prefix: element.dataset.inlinePrefix,
                             field_name: element.dataset.fieldName,
                         };
                     }
@@ -33,7 +36,15 @@
         $('.admin-actionform-autocomplete').not('[name*=__prefix__]').djangoAdminActionFormSelect2();
     });
 
+    // Django 4.1.x and above
     document.addEventListener('formset:added', (event) => {
         $(event.target).find('.admin-actionform-autocomplete').djangoAdminActionFormSelect2();
     });
+
+    // Django 3.2.x
+    $(document).on('formset:added', (function () {
+        return function (event, $newFormset) {
+            return $newFormset.find('.admin-actionform-autocomplete').djangoAdminActionFormSelect2();
+        };
+    })(this));
 }

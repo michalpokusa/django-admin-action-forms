@@ -77,7 +77,8 @@ class ActionForm(Form):
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
-        self._replace_widgets_for_filter_and_autocomplete_fields()
+        self._replace_widgets_for_filter_horizontal_and_vertical()
+        self._replace_widgets_for_autocomplete_fields()
         self._add_default_selectmultiple_widget_help_text()
         self._add_autocomplete_widget_attrs()
 
@@ -99,8 +100,7 @@ class ActionForm(Form):
                 if limit_choices_to is not None:
                     field.queryset = queryset.complex_filter(limit_choices_to)
 
-    def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
-        autocomplete_fields = self.opts.autocomplete_fields
+    def _replace_widgets_for_filter_horizontal_and_vertical(self) -> None:
         filter_horizontal = self.opts.filter_horizontal
         filter_vertical = self.opts.filter_vertical
 
@@ -121,6 +121,12 @@ class ActionForm(Form):
                         choices=field.choices,
                     )
 
+            field.widget.is_required = field.required
+
+    def _replace_widgets_for_autocomplete_fields(self) -> None:
+        autocomplete_fields = self.opts.autocomplete_fields
+
+        for field_name, field in self.fields.items():
             if field_name in autocomplete_fields:
                 if isinstance(field, ModelChoiceField):
                     field.widget = AutocompleteModelChoiceWidget(

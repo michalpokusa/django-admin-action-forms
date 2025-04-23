@@ -16,9 +16,9 @@ class Options:
     fields: "list[str | tuple[str, ...]] | None"
     fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
     inlines: "list[type[InlineAdminActionFormSet]]"
-    autocomplete_fields: "list[str]"
     filter_horizontal: "list[str]"
     filter_vertical: "list[str]"
+    autocomplete_fields: "list[str]"
     confirm_button_text: str
     cancel_button_text: str
 
@@ -31,9 +31,9 @@ class Options:
         self.fields = getattr(self._meta, "fields", None)
         self.fieldsets = getattr(self._meta, "fieldsets", None)
         self.inlines = getattr(self._meta, "inlines", None)
-        self.autocomplete_fields = getattr(self._meta, "autocomplete_fields", [])
         self.filter_horizontal = getattr(self._meta, "filter_horizontal", [])
         self.filter_vertical = getattr(self._meta, "filter_vertical", [])
+        self.autocomplete_fields = getattr(self._meta, "autocomplete_fields", [])
         self.confirm_button_text = getattr(
             self._meta, "confirm_button_text", gettext_lazy("Confirm")
         )

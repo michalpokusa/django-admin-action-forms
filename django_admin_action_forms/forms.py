@@ -255,9 +255,9 @@ class ActionForm(Form):
         )
         inlines: "list[type[InlineAdminActionFormSet]]"
 
-        autocomplete_fields: "list[str]"
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
+        autocomplete_fields: "list[str]"
 
         confirm_button_text: str
         cancel_button_text: str

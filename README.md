@@ -281,6 +281,26 @@ class ShopProductsTests(TestCase):
 
 ## 📄 Reference
 
+- [`AdminActionFormsMixin`](#class-adminactionformsmixin)
+- [`@action_with_form`](#action_with_formform_class--permissionsnone-descriptionnone)
+- [`AdminActionForm`](#class-actionform)
+  - [`__init__()`](#def-__init__self-args-kwargs)
+  - [`admin_action_view()`](#def-action_form_viewself-request-extra_contextnone)
+- [`AdminActionForm`](#class-adminactionform)
+- [`ActionForm.Meta`](#class-actionformmeta)
+  - [`list_objects`](#list_objects)
+  - [`help_text`](#help_text)
+  - [`fields`](#fields)
+  - [`get_fields()`](#def-get_fieldsrequest)
+  - [`fieldsets`](#fieldsets)
+  - [`get_fieldsets()`](#def-get_fieldsetsrequest)
+  - [`filter_horizontal`](#filter_horizontal)
+  - [`filter_vertical`](#filter_vertical)
+  - [`autocomplete_fields`](#autocomplete_fields)
+  - [`radio_fields`](#radio_fields)
+  - [`confirm_button_text`](#confirm_button_text)
+  - [`cancel_button_text`](#cancel_button_text)
+
 ### _class_ AdminActionFormsMixin
 
 Class that should be inherited by all `ModelAdmin` classes that will use action forms. It provides the logic for displaying the intermediate page and handling the form submission.
@@ -581,6 +601,25 @@ autocomplete_fields = ["field1", "field2"]
 > [!NOTE]
 > Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
 > See [🔌 Installation](#-installation).
+
+#### radio_fields
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.radio_fields">
+    <code>ModelAdmin.radio_fields</code>
+</a>
+
+Default: `{}`
+
+Sets fields that should use a radio-button interface.
+You have the choice of using `HORIZONTAL` or `VERTICAL` from the django.contrib.admin module.
+Don’t include a field in `radio_fields` unless it’s a `ChoiceField` or its subclass.
+
+```python
+radio_fields = {
+    "field1": admin.HORIZONTAL,
+    "field2": admin.VERTICAL,
+}
+```
 
 #### confirm_button_text
 

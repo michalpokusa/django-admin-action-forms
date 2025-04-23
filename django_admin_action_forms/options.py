@@ -19,6 +19,7 @@ class Options:
     filter_horizontal: "list[str]"
     filter_vertical: "list[str]"
     autocomplete_fields: "list[str]"
+    radio_fields: "dict[str, int]"
     confirm_button_text: str
     cancel_button_text: str
 
@@ -34,6 +35,7 @@ class Options:
         self.filter_horizontal = getattr(self._meta, "filter_horizontal", [])
         self.filter_vertical = getattr(self._meta, "filter_vertical", [])
         self.autocomplete_fields = getattr(self._meta, "autocomplete_fields", [])
+        self.radio_fields = getattr(self._meta, "radio_fields", {})
         self.confirm_button_text = getattr(
             self._meta, "confirm_button_text", gettext_lazy("Confirm")
         )

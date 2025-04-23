@@ -5,6 +5,7 @@ if TYPE_CHECKING:
 
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
+from django.contrib.admin.options import get_ul_class
 from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.admin.widgets import (
     AdminDateWidget,
@@ -20,6 +21,7 @@ from django.contrib.admin.widgets import (
 from django.db.models import QuerySet
 from django.forms import (
     CharField,
+    ChoiceField,
     DateField,
     EmailField,
     Field,
@@ -48,6 +50,7 @@ from .widgets import (
     ActionFormAutocompleteMixin,
     AutocompleteModelChoiceWidget,
     AutocompleteModelMultiChoiceWidget,
+    RadioFieldsWidget,
 )
 
 
@@ -79,6 +82,7 @@ class ActionForm(Form):
         self._apply_limit_choices_to_on_model_choice_fields()
         self._replace_widgets_for_filter_horizontal_and_vertical()
         self._replace_widgets_for_autocomplete_fields()
+        self._replace_widgets_for_radio_fields()
         self._add_default_selectmultiple_widget_help_text()
         self._add_autocomplete_widget_attrs()
 
@@ -135,6 +139,18 @@ class ActionForm(Form):
 
                 if isinstance(field, ModelMultipleChoiceField):
                     field.widget = AutocompleteModelMultiChoiceWidget(
+                        choices=field.choices,
+                    )
+
+            field.widget.is_required = field.required
+
+    def _replace_widgets_for_radio_fields(self) -> None:
+        radio_fields = self.opts.radio_fields
+        for field_name, field in self.fields.items():
+            if field_name in radio_fields:
+                if isinstance(field, ChoiceField):
+                    field.widget = RadioFieldsWidget(
+                        attrs={"class": get_ul_class(radio_fields[field_name])},
                         choices=field.choices,
                     )
 
@@ -258,6 +274,7 @@ class ActionForm(Form):
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
         autocomplete_fields: "list[str]"
+        radio_fields: "dict[str, int]"
 
         confirm_button_text: str
         cancel_button_text: str

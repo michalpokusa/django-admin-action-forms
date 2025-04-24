@@ -269,12 +269,13 @@ class ActionForm(Form):
         fieldsets: (
             "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
         )
-        inlines: "list[type[InlineAdminActionFormSet]]"
 
         filter_horizontal: "list[str]"
         filter_vertical: "list[str]"
         autocomplete_fields: "list[str]"
         radio_fields: "dict[str, int]"
+
+        inlines: "list[type[InlineAdminActionFormSet]]"
 
         confirm_button_text: str
         cancel_button_text: str

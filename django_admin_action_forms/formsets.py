@@ -76,6 +76,10 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
         self.request = request
         self.queryset = queryset
 
+        self.extra = self.get_extra(request)
+        self.min_num = self.get_min_num(request)
+        self.max_num = self.get_max_num(request)
+
         init_kwargs = {"prefix": self.prefix}
 
         if is_bound:
@@ -101,6 +105,15 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
             self.verbose_name_plural = f"{self.verbose_name}s"
 
         self.classes = " ".join(self.classes) if self.classes else ""
+
+    def get_extra(self, request: HttpRequest) -> int:
+        return self.extra
+
+    def get_min_num(self, request: HttpRequest) -> int:
+        return self.min_num
+
+    def get_max_num(self, request: HttpRequest) -> int:
+        return self.max_num
 
     def __iter__(self) -> "Generator[InlineActionForm, None, None]":
         yield from super().__iter__()

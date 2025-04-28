@@ -228,7 +228,7 @@ class ActionForm(Form):
     @property
     def inlines_cleaned_data(self):
         return {
-            f"{inline.prefix}s": [data for data in inline.cleaned_data if data]
+            f"{inline.name}": [data for data in inline.cleaned_data if data]
             for inline in self.inlines
         }
 
@@ -340,7 +340,7 @@ class InlineActionForm(ActionForm):
         super()._add_autocomplete_widget_attrs()
         for field_name, field in self.fields.items():
             if isinstance(field.widget, ActionFormAutocompleteMixin):
-                field.widget.attrs["data-inline-prefix"] = self.formset.prefix
+                field.widget.attrs["data-inline-name"] = self.formset.name
 
 
 class InlineAdminActionForm(AdminActionForm, InlineActionForm): ...

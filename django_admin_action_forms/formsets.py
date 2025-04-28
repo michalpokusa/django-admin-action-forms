@@ -50,8 +50,9 @@ class InlineFieldDict(TypedDict):
 
 class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
 
-    prefix: str
+    name: str
     form: "type[InlineActionForm]"
+
     template = None
     extra: int = 1
     min_num: int = DEFAULT_MIN_NUM
@@ -71,6 +72,11 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
         queryset: QuerySet,
         is_bound: bool = False,
     ):
+        if not self.name.isidentifier():
+            raise ValueError(
+                f"{self.__class__.__name__}.name should be a valid Python identifier: '{self.name}'"
+            )
+
         self.modeladmin = modeladmin
         self.action = action
         self.request = request
@@ -80,7 +86,7 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
         self.min_num = self.get_min_num(request)
         self.max_num = self.get_max_num(request)
 
-        init_kwargs = {"prefix": self.prefix}
+        init_kwargs = {"prefix": self.name}
 
         if is_bound:
             init_kwargs["data"] = request.POST
@@ -100,7 +106,7 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
         self.can_delete_extra = True
 
         if self.verbose_name is None:
-            self.verbose_name = self.prefix.lower()
+            self.verbose_name = self.get_default_verbose_name()
         if self.verbose_name_plural is None:
             self.verbose_name_plural = f"{self.verbose_name}s"
 
@@ -114,6 +120,11 @@ class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
 
     def get_max_num(self, request: HttpRequest) -> int:
         return self.max_num
+
+    @classmethod
+    def get_default_verbose_name(cls) -> str:
+        verbose_name = cls.name.replace("_", " ").lower()
+        return verbose_name if not verbose_name.endswith("s") else verbose_name[:-1]
 
     def __iter__(self) -> "Generator[InlineActionForm, None, None]":
         yield from super().__iter__()

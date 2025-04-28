@@ -261,34 +261,38 @@ class ActionForm(Form):
 
         return TemplateResponse(request, self.template, context)
 
-    class Meta:
-        list_objects: bool
-        help_text: "str | None"
+    if TYPE_CHECKING:
 
-        fields: "list[str | tuple[str, ...]] | None"
-        fieldsets: (
-            "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
-        )
+        class Meta:
+            list_objects: bool
+            help_text: "str | None"
 
-        filter_horizontal: "list[str]"
-        filter_vertical: "list[str]"
-        autocomplete_fields: "list[str]"
-        radio_fields: "dict[str, int]"
+            fields: "list[str | tuple[str, ...]] | None"
+            fieldsets: (
+                "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
+            )
 
-        inlines: "list[type[InlineAdminActionFormSet]]"
+            filter_horizontal: "list[str]"
+            filter_vertical: "list[str]"
+            autocomplete_fields: "list[str]"
+            radio_fields: "dict[str, int]"
 
-        confirm_button_text: str
-        cancel_button_text: str
+            inlines: "list[type[InlineAdminActionFormSet]]"
 
-        def get_fields(self, request: HttpRequest) -> "list[str | tuple[str, ...]]": ...
+            confirm_button_text: str
+            cancel_button_text: str
 
-        def get_fieldsets(
-            self, request: HttpRequest
-        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]": ...
+            def get_fields(
+                self, request: HttpRequest
+            ) -> "list[str | tuple[str, ...]]": ...
 
-        def get_inlines(
-            self, request: HttpRequest
-        ) -> "list[type[InlineAdminActionFormSet]]": ...
+            def get_fieldsets(
+                self, request: HttpRequest
+            ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]": ...
+
+            def get_inlines(
+                self, request: HttpRequest
+            ) -> "list[type[InlineAdminActionFormSet]]": ...
 
 
 class AdminActionForm(ActionForm):

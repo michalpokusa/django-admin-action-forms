@@ -25,7 +25,7 @@ class Options:
 
     def __init__(self, form: "ActionForm"):
         self._form = form
-        self._meta = form.Meta()
+        self._meta = form.Meta() if hasattr(form, "Meta") else None
 
         self.list_objects = getattr(self._meta, "list_objects", False)
         self.help_text = getattr(self._meta, "help_text", None)

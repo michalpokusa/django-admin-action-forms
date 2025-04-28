@@ -2,16 +2,13 @@
 requires = ["setuptools", "setuptools-scm"]
 build-backend = "setuptools.build_meta"
 
-[tool.setuptools]
-packages = ["django_admin_action_forms"]
-
 [project]
 name = "django-admin-action-forms"
 version = "%PACKAGE_VERSION%"
 description = "Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms."
 readme = "README.md"
-license = {file = "LICENSE"}
-keywords = ["django", "admin", "action", "actions", "form", "forms", "pass", "intermediate", "args", "arguments", "params", "parameters"]
+license-files = ["LICENSE"]
+keywords = ["django", "admin", "action", "actions", "form", "forms", "pass", "intermediate", "args", "arguments", "params", "parameters", "inline", "inlines", "formset", "formsets"]
 authors = [
   {name = "Michał Pokusa"},
 ]
@@ -28,9 +25,9 @@ classifiers = [
     "Framework :: Django :: 4",
     "Framework :: Django :: 5.0",
     "Framework :: Django :: 5.1",
+    "Framework :: Django :: 5.2",
     "Framework :: Django :: 5",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.10",
@@ -48,3 +45,8 @@ dependencies = ["django>=3.2"]
 
 [project.urls]
 Repository = "https://github.com/michalpokusa/django-admin-action-forms"
+
+[tool.setuptools.packages.find]
+exclude = [
+  "django_admin_action_forms/locale/*"
+]

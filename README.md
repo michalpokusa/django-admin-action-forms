@@ -254,7 +254,7 @@ class AssignToEmployeeActionForm(AdminActionForm):
 ### Inlines
 
 In some cases, you may need to pass a list of values to the action. These values could be as simple as numbers or they could have a more complex structure.
-By using `inlines`, you can add a formsets to your action form.
+By using `inlines`, you can add formsets to your action form.
 This is very useful when you need multiple values that share the same fields, but you do not know exactly how many there will be.
 
 Let's say you want to set the power level plan for a fan, based on the temperature.
@@ -692,6 +692,8 @@ class Meta:
 > Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.radio_fields">
     <code>ModelAdmin.radio_fields</code>
 </a>
+
+> _Added in version 2.1.0_
 
 Default: `{}`
 

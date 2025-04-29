@@ -45,6 +45,7 @@ dependencies = ["django>=3.2"]
 
 [project.urls]
 Repository = "https://github.com/michalpokusa/django-admin-action-forms"
+Changelog = "https://github.com/michalpokusa/django-admin-action-forms/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 exclude = [

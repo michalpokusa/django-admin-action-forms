@@ -2,7 +2,7 @@ from django.apps import apps
 from django.contrib.admin import AdminSite, ModelAdmin, sites
 from django.db.models import Model
 from django.db.models import QuerySet
-from django.forms import ModelChoiceField, ModelMultipleChoiceField
+from django.forms import Field, ModelChoiceField, ModelMultipleChoiceField
 from django.http import (
     HttpRequest,
     HttpResponseForbidden,
@@ -12,6 +12,7 @@ from django.http import (
 from django.views.generic.list import BaseListView
 
 from .forms import ActionForm
+from .formsets import InlineAdminActionFormSet
 
 
 class ActionFormAutocompleteJsonView(BaseListView):
@@ -21,6 +22,32 @@ class ActionFormAutocompleteJsonView(BaseListView):
     """
 
     paginate_by = 20
+
+    def _get_field_by_name(
+        self,
+        form: "type[ActionForm]",
+        field_name: str,
+        inline_name: "str | None" = None,
+    ) -> "Field | None":
+
+        # Fields on the action form
+        if inline_name is None:
+            return form.base_fields.get(field_name, None)
+
+        # Fields on the inline
+        form_meta: "ActionForm.Meta | None" = getattr(form, "Meta", None)
+        if form_meta is None:
+            return None
+
+        inlines: "list[InlineAdminActionFormSet]" = getattr(form_meta, "inlines", [])
+
+        for inline in inlines:
+            if inline.name != inline_name:
+                continue
+
+            return inline.form.base_fields.get(field_name, None)
+
+        return None
 
     def get(self, request: HttpRequest):
         """
@@ -38,6 +65,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
         GET_app_label = request.GET.get("app_label")
         GET_model_name = request.GET.get("model_name")
         GET_action_name = request.GET.get("action_name")
+        GET_inline_name = request.GET.get("inline_name")
         GET_field_name = request.GET.get("field_name")
         GET_page = request.GET.get("page", "1")
         GET_term = request.GET.get("term", "")
@@ -61,7 +89,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
 
         # Model
         try:
-            model = apps.get_model(GET_app_label, GET_model_name)
+            model: Model = apps.get_model(GET_app_label, GET_model_name)
         except LookupError:
             return HttpResponseBadRequest()
 
@@ -87,10 +115,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
             return HttpResponseBadRequest()
 
         # ActionForm -> Field
-        field = {
-            **action_form.base_fields,
-            **action_form.declared_fields,
-        }.get(GET_field_name)
+        field = self._get_field_by_name(action_form, GET_field_name, GET_inline_name)
 
         if not isinstance(field, (ModelChoiceField, ModelMultipleChoiceField)):
             return HttpResponseBadRequest()

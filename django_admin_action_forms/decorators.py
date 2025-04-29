@@ -32,11 +32,19 @@ def action_with_form(
             )
             rest = args[2:]
 
+            try:
+                action_index = int(request.POST.get("index", 0))
+            except ValueError:
+                action_index = 0
+
+            action = request.POST.getlist("action")[action_index]
+
             form = (
-                form_class(modeladmin, request, queryset)
+                form_class(modeladmin, action, request, queryset)
                 if request.POST.get("submitted_from_changelist_view", "0") == "1"
                 else form_class(
                     modeladmin,
+                    action,
                     request,
                     queryset,
                     data=request.POST,
@@ -44,8 +52,13 @@ def action_with_form(
                 )
             )
 
-            if form.is_valid():
-                return action_function(modeladmin, request, *rest, form.cleaned_data)
+            if form.is_valid() and form.inlines_are_valid():
+                return action_function(
+                    modeladmin,
+                    request,
+                    *rest,
+                    {**form.cleaned_data, **form.inlines_cleaned_data},
+                )
 
             return form.action_form_view(request)
 

@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from django.conf import settings
-from django.forms import Select, SelectMultiple, Media, Widget
+from django.forms import Select, SelectMultiple, Media, Widget, RadioSelect
 from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -15,7 +15,7 @@ except ImportError:
     from django.contrib.admin.widgets import SELECT2_TRANSLATIONS
     from django.utils.translation import get_language
 
-    # Copied django.contrib.admin.widgets.get_select2_language
+    # Polyfill copied from django.contrib.admin.widgets.get_select2_language
     def get_select2_language():
         lang_code = get_language()
         supported_code = SELECT2_TRANSLATIONS.get(lang_code)
@@ -79,7 +79,7 @@ class ActionFormAutocompleteMixin(Widget):
 
         return attrs
 
-    def optgroups(self, name, value, attr=None):
+    def optgroups(self, name: str, value: str, attr: str = None):
         default = (None, [], 0)
         groups = [default]
         has_selected = False
@@ -150,3 +150,6 @@ class AutocompleteModelChoiceWidget(
 class AutocompleteModelMultiChoiceWidget(
     ActionFormAutocompleteMixin, RenderInsideDivMixin, SelectMultiple
 ): ...
+
+
+class RadioFieldsWidget(RenderInsideDivMixin, RadioSelect): ...

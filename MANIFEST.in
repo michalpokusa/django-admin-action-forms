@@ -1,3 +1,8 @@
+global-exclude *
+
+recursive-include django_admin_action_forms/ *.py
 recursive-include django_admin_action_forms/locale *.po *.mo
 recursive-include django_admin_action_forms/static *.css *.js
 recursive-include django_admin_action_forms/templates *.html
+
+include pyproject.toml

@@ -1,5 +1,12 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .formsets import InlineAdminActionFormSet
+
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
+from django.contrib.admin.options import get_ul_class
+from django.contrib.admin.utils import flatten_fieldsets
 from django.contrib.admin.widgets import (
     AdminDateWidget,
     AdminEmailInputWidget,
@@ -14,6 +21,7 @@ from django.contrib.admin.widgets import (
 from django.db.models import QuerySet
 from django.forms import (
     CharField,
+    ChoiceField,
     DateField,
     EmailField,
     Field,
@@ -42,6 +50,7 @@ from .widgets import (
     ActionFormAutocompleteMixin,
     AutocompleteModelChoiceWidget,
     AutocompleteModelMultiChoiceWidget,
+    RadioFieldsWidget,
 )
 
 
@@ -55,56 +64,31 @@ class ActionForm(Form):
     def __init__(
         self,
         modeladmin: ModelAdmin,
+        action: str,
         request: HttpRequest,
         queryset: QuerySet,
         *args,
-        **kwargs
+        **kwargs,
     ) -> None:
         self.modeladmin = modeladmin
+        self.action = action
         self.request = request
         self.queryset = queryset
 
-        try:
-            action_index = int(request.POST.get("index", 0))
-        except ValueError:
-            action_index = 0
-
-        self.action = request.POST.getlist("action")[action_index]
-
         super().__init__(*args, **kwargs)
-        self.opts = Options(self.Meta)
+        self.opts = Options(self)
 
         self._remove_excluded_fields()
         self._apply_limit_choices_to_on_model_choice_fields()
-        self._replace_widgets_for_filter_and_autocomplete_fields()
+        self._replace_widgets_for_filter_horizontal_and_vertical()
+        self._replace_widgets_for_autocomplete_fields()
+        self._replace_widgets_for_radio_fields()
         self._add_default_selectmultiple_widget_help_text()
         self._add_autocomplete_widget_attrs()
 
     def _remove_excluded_fields(self) -> None:
         all_fields = set(self.fields.keys())
-        included_fields: "set[str]" = set()
-
-        fieldsets = self.opts.get_fieldsets(self.request)
-        fields = self.opts.get_fields(self.request)
-
-        if fieldsets is not None:
-            for name, field_options in fieldsets:
-                for field in field_options.get("fields", ()):
-                    if isinstance(field, (list, tuple)):
-                        included_fields.update(field)
-                    else:
-                        included_fields.add(field)
-
-        elif fields is not None:
-            for field in fields:
-                if isinstance(field, (list, tuple)):
-                    included_fields.update(field)
-                else:
-                    included_fields.add(field)
-
-        else:
-            included_fields = all_fields
-
+        included_fields = set(flatten_fieldsets(self.opts.get_fieldsets(self.request)))
         excluded_fields = all_fields.difference(included_fields)
 
         for field_name in excluded_fields:
@@ -120,8 +104,7 @@ class ActionForm(Form):
                 if limit_choices_to is not None:
                     field.queryset = queryset.complex_filter(limit_choices_to)
 
-    def _replace_widgets_for_filter_and_autocomplete_fields(self) -> None:
-        autocomplete_fields = self.opts.autocomplete_fields
+    def _replace_widgets_for_filter_horizontal_and_vertical(self) -> None:
         filter_horizontal = self.opts.filter_horizontal
         filter_vertical = self.opts.filter_vertical
 
@@ -142,6 +125,12 @@ class ActionForm(Form):
                         choices=field.choices,
                     )
 
+            field.widget.is_required = field.required
+
+    def _replace_widgets_for_autocomplete_fields(self) -> None:
+        autocomplete_fields = self.opts.autocomplete_fields
+
+        for field_name, field in self.fields.items():
             if field_name in autocomplete_fields:
                 if isinstance(field, ModelChoiceField):
                     field.widget = AutocompleteModelChoiceWidget(
@@ -150,6 +139,18 @@ class ActionForm(Form):
 
                 if isinstance(field, ModelMultipleChoiceField):
                     field.widget = AutocompleteModelMultiChoiceWidget(
+                        choices=field.choices,
+                    )
+
+            field.widget.is_required = field.required
+
+    def _replace_widgets_for_radio_fields(self) -> None:
+        radio_fields = self.opts.radio_fields
+        for field_name, field in self.fields.items():
+            if field_name in radio_fields:
+                if isinstance(field, ChoiceField):
+                    field.widget = RadioFieldsWidget(
+                        attrs={"class": get_ul_class(radio_fields[field_name])},
                         choices=field.choices,
                     )
 
@@ -188,25 +189,25 @@ class ActionForm(Form):
 
     @cached_property
     def fieldsets(self) -> "list[Fieldset]":
+        return [
+            Fieldset(
+                form=self,
+                name=name,
+                fields=field_options.get("fields", ()),
+                classes=field_options.get("classes", ()),
+                description=field_options.get("description", None),
+            )
+            for name, field_options in self.opts.get_fieldsets(self.request)
+        ]
 
-        fieldsets = self.opts.get_fieldsets(self.request)
-        if fieldsets is not None:
-            return [
-                Fieldset(
-                    form=self,
-                    name=name,
-                    fields=field_options.get("fields", ()),
-                    classes=field_options.get("classes", ()),
-                    description=field_options.get("description", None),
-                )
-                for name, field_options in fieldsets
-            ]
-
-        fields = self.opts.get_fields(self.request)
-        if fields is not None:
-            return [Fieldset(form=self, fields=tuple(fields))]
-
-        return [Fieldset(form=self, fields=tuple(self.fields.keys()))]
+    @cached_property
+    def inlines(self) -> "list[InlineAdminActionFormSet]":
+        return [
+            InlineFormSet(
+                self.modeladmin, self.action, self.request, self.queryset, self.is_bound
+            )
+            for InlineFormSet in self.opts.get_inlines(self.request)
+        ]
 
     @property
     def media(self):
@@ -216,7 +217,20 @@ class ActionForm(Form):
         for fieldset in self.fieldsets:
             media += fieldset.media
 
+        for inline in self.inlines:
+            media += inline.media
+
         return media
+
+    def inlines_are_valid(self) -> bool:
+        return all(inline.is_valid() for inline in self.inlines)
+
+    @property
+    def inlines_cleaned_data(self):
+        return {
+            f"{inline.name}": [data for data in inline.cleaned_data if data]
+            for inline in self.inlines
+        }
 
     def action_form_view(self, request: HttpRequest, extra_context: dict = None):
         admin_site = self.modeladmin.admin_site
@@ -236,6 +250,7 @@ class ActionForm(Form):
             "queryset": self.queryset,
             "form": self,
             "fieldsets": self.fieldsets,
+            "inlines": self.inlines,
             "action": self.action,
             "select_across": request.POST.get("select_across", "0"),
             "selected_action": request.POST.getlist("_selected_action"),
@@ -246,29 +261,38 @@ class ActionForm(Form):
 
         return TemplateResponse(request, self.template, context)
 
-    class Meta:
-        list_objects: bool
-        help_text: "str | None"
+    if TYPE_CHECKING:
 
-        fields: "list[str | tuple[str, ...]] | None"
-        fieldsets: (
-            "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
-        )
+        class Meta:
+            list_objects: bool
+            help_text: "str | None"
 
-        autocomplete_fields: "list[str]"
-        filter_horizontal: "list[str]"
-        filter_vertical: "list[str]"
+            fields: "list[str | tuple[str, ...]] | None"
+            fieldsets: (
+                "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
+            )
 
-        confirm_button_text: str
-        cancel_button_text: str
+            filter_horizontal: "list[str]"
+            filter_vertical: "list[str]"
+            autocomplete_fields: "list[str]"
+            radio_fields: "dict[str, int]"
 
-        def get_fields(
-            self, request: HttpRequest
-        ) -> "list[str | tuple[str, ...]] | None": ...
+            inlines: "list[type[InlineAdminActionFormSet]]"
 
-        def get_fieldsets(
-            self, request: HttpRequest
-        ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None": ...
+            confirm_button_text: str
+            cancel_button_text: str
+
+            def get_fields(
+                self, request: HttpRequest
+            ) -> "list[str | tuple[str, ...]]": ...
+
+            def get_fieldsets(
+                self, request: HttpRequest
+            ) -> "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]]": ...
+
+            def get_inlines(
+                self, request: HttpRequest
+            ) -> "list[type[InlineAdminActionFormSet]]": ...
 
 
 class AdminActionForm(ActionForm):
@@ -304,3 +328,19 @@ class AdminActionForm(ActionForm):
                     field.widget = admin_widget_type()
                     field.widget.is_required = field.required
                     field.widget.attrs.update(widget_attrs)
+
+
+class InlineActionForm(ActionForm):
+
+    def __init__(self, formset: "InlineAdminActionFormSet", *args, **kwargs):
+        self.formset = formset
+        super().__init__(*args, **kwargs)
+
+    def _add_autocomplete_widget_attrs(self):
+        super()._add_autocomplete_widget_attrs()
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, ActionFormAutocompleteMixin):
+                field.widget.attrs["data-inline-name"] = self.formset.name
+
+
+class InlineAdminActionForm(AdminActionForm, InlineActionForm): ...

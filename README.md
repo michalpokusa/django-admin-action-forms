@@ -15,10 +15,11 @@ Extension for the Django admin panel that allows passing additional parameters t
 - [🚀 Overview](#-overview)
 - [🎉 Features](#-features)
 - [🔌 Installation](#-installation)
-- [✏️ Examples](#️examples)
+- [✏️ Examples](#️-examples)
   - [Simple confirm form](#simple-confirm-form)
   - [Action with parameters](#action-with-parameters)
   - [Customizing action form layout](#customizing-action-form-layout)
+  - [Inlines](#inlines)
   - [Testing action forms](#testing-action-forms)
 - [📄 Reference](#-reference)
 
@@ -32,7 +33,7 @@ Have you ever added a somewhat hacky way to pass additional parameters to an act
 
 This is how it looks in action:
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/overview.gif" width="100%">
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/overview.gif" width="100%">
 
 By adding a few lines of code, you can create actions with custom forms that will be displayed in an intermediate page before the action is executed. Data from the form will be passed to the action as an additional argument.
 
@@ -132,7 +133,7 @@ class UserAdmin(AdminActionFormsMixin, admin.ModelAdmin):
 
 By doing this, we recreated the behavior of intermediate page from the built-in `delete_selected` action.
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/simple-confirm-form/reset-users-password.gif" width="100%">
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/reset-users-password.gif" width="100%">
 
 ### Action with parameters
 
@@ -179,7 +180,7 @@ class OrderAdmin(AdminActionFormsMixin, admin.ModelAdmin):
     actions = [change_order_status_action]
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/change-order-status.gif" width="100%">
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/change-order-status.gif" width="100%">
 
 You may think that this could be achieved by creating an action for each status, but what if you have 10 statuses? 100? This way you can create a single action that will work for all of them.
 
@@ -207,7 +208,7 @@ class SetProductDiscountActionForm(AdminActionForm):
     )
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/action-with-parameters/set-product-discount.gif" width="100%">
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/set-product-discount.gif" width="100%">
 
 Now we can set any discount and any date, and because we subclassed [`AdminActionForm`](#adminactionform), we get a nice date picker.
 
@@ -219,7 +220,7 @@ For `Model`-related fields, it might be useful to use `filter_horizontal`/`filte
 
 Let's create an action form for action that assigns selected `Tasks` to `Employee`, that we will select using autocomplete widget.
 Also, let's add the field for setting the optional `Tags` for selected `Tasks`, and validate that no more than 3
-are selected using <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#using-forms-to-validate-data">Django's form validation</a>.
+are selected using <a href="https://docs.djangoproject.com/en/5.2/ref/forms/api/#using-forms-to-validate-data">Django's form validation</a>.
 
 ```python
 from django import forms
@@ -248,7 +249,65 @@ class AssignToEmployeeActionForm(AdminActionForm):
         filter_horizontal = ["tags"]
 ```
 
-<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/resources/examples/customizing-action-form-layout/assign-to-employee.gif" width="100%">
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/assign-to-employee.gif" width="100%">
+
+### Inlines
+
+In some cases, you may need to pass a list of values to the action. These values could be as simple as numbers or they could have a more complex structure.
+By using `inlines`, you can add a formsets to your action form.
+This is very useful when you need multiple values that share the same fields, but you do not know exactly how many there will be.
+
+Let's say you want to set the power level plan for a fan, based on the temperature.
+You can do this by creating an action form with inlines, where each inline will represent a range of temperatures and the corresponding power level.
+
+```python
+from django import forms
+
+from django_admin_action_forms import InlineAdminActionForm, TabularAdminActionInline, AdminActionForm
+
+
+class FanPowerLevelInlineForm(InlineAdminActionForm):
+    temperature_from = forms.IntegerField(required=True)
+    temperature_to = forms.IntegerField(required=True)
+    power = forms.IntegerField(
+        min_value=0,
+        max_value=100,
+        required=True,
+    )
+
+
+class FanPowerLevelsInline(TabularAdminActionInline):
+    name = "fan_power_levels"
+    form = FanPowerLevelInlineForm
+
+    extra = 0
+
+    initial = [
+        {"temperature_from": 0, "temperature_to": 50, "power": 40},
+        {"temperature_from": 50, "temperature_to": 80, "power": 70},
+        {"temperature_from": 80, "temperature_to": 100, "power": 100},
+    ]
+
+
+class ConfigureFanPowerLevelsActionForm(AdminActionForm):
+    scale = forms.ChoiceField(
+        choices=[
+            ("c", "Celsius"),
+            ("f", "Fahrenheit"),
+        ],
+        required=True,
+        label="Scale",
+    )
+
+    class Meta:
+        inlines = [
+            FanPowerLevelsInline,
+        ]
+```
+
+<img src="https://raw.githubusercontent.com/michalpokusa/django-admin-action-forms/main/docs/inlines.gif" width="100%">
+
+Multiple inlines can be used in the same action form, and they will be displayed in the order they are defined in `inlines`.
 
 ### Testing action forms
 
@@ -281,6 +340,45 @@ class ShopProductsTests(TestCase):
 
 ## 📄 Reference
 
+- [`AdminActionFormsMixin`](#class-adminactionformsmixin)
+- [`@action_with_form`](#action_with_formform_class--permissionsnone-descriptionnone)
+- [`ActionForm`](#class-actionform)
+  - [`__init__()`](#def-__init__self-args-kwargs)
+  - [`admin_action_view()`](#def-action_form_viewself-request-extra_contextnone)
+- [`AdminActionForm`](#class-adminactionform)
+- [`ActionForm.Meta`](#class-actionformmeta)
+  - [`list_objects`](#list_objects)
+  - [`help_text`](#help_text)
+  - [`fields`](#fields)
+  - [`get_fields()`](#def-get_fieldsrequest)
+  - [`fieldsets`](#fieldsets)
+  - [`get_fieldsets()`](#def-get_fieldsetsrequest)
+  - [`filter_horizontal`](#filter_horizontal)
+  - [`filter_vertical`](#filter_vertical)
+  - [`autocomplete_fields`](#autocomplete_fields)
+  - [`radio_fields`](#radio_fields)
+  - [`inlines`](#inlines)
+  - [`get_inlines()`](#def-get_inlinesrequest)
+  - [`confirm_button_text`](#confirm_button_text)
+  - [`cancel_button_text`](#cancel_button_text)
+- [`InlineActionForm`](#class-inlineactionform)
+- [`InlineAdminActionForm`](#class-inlineadminactionform)
+- [`InlineAdminActionFormSet`](#class-inlineadminactionformset)
+- [`StackedAdminActionInline`](#class-stackedadminactioninline)
+- [`TabularAdminActionInline`](#class-tabularadminactioninline)
+  - [`name`](#name)
+  - [`form`](#form)
+  - [`extra`](#extra)
+  - [`get_extra()`](#def-get_extrarequest)
+  - [`min_num`](#min_num)
+  - [`get_min_num()`](#def-get_min_numrequest)
+  - [`max_num`](#max_num)
+  - [`get_max_num()`](#def-get_max_numrequest)
+  - [`verbose_name`](#verbose_name)
+  - [`verbose_name_plural`](#verbose_name_plural)
+  - [`classes`](#classes)
+  - [`initial`](#initial)
+
 ### _class_ AdminActionFormsMixin
 
 Class that should be inherited by all `ModelAdmin` classes that will use action forms. It provides the logic for displaying the intermediate page and handling the form submission.
@@ -298,7 +396,7 @@ class ProductAdmin(AdminActionFormsMixin, admin.ModelAdmin):
 
 #### @action_with_form(<i>form_class, *, permissions=None, description=None</i>)
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/actions/#the-action-decorator">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/actions/#the-action-decorator">
     <code>@admin.action</code>
 </a>
 
@@ -318,7 +416,7 @@ def custom_action(self, request, queryset, data):
 
 ### _class_ ActionForm
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/forms/api/#django.forms.Form">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/forms/api/#django.forms.Form">
     <code>Form</code>
 </a>
 
@@ -391,7 +489,7 @@ class CustomActionForm(AdminActionForm):
 
 ### _class_ ActionForm.Meta
 
-> Works similar to some <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#modeladmin-options">
+> Works similar to some <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#modeladmin-options">
     <code>ModelAdmin</code> options
 </a>
 
@@ -418,7 +516,8 @@ If `True`, the intermediate page will display a list of objects that will be aff
 to the intermediate page for built-in `delete_selected` action.
 
 ```python
-list_objects = True
+class Meta:
+    list_objects = True
 ```
 
 #### help_text
@@ -428,12 +527,13 @@ Default: `None`
 Text displayed between the form and the list of objects or form in the intermediate page.
 
 ```python
-help_text = "This text will be displayed between the form and the list of objects"
+class Meta:
+    help_text = "This text will be displayed between the form and the list of objects"
 ```
 
 #### fields
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fields">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fields">
     <code>ModelAdmin.fields</code>
 </a>
 
@@ -442,12 +542,13 @@ Default: `None`
 Specifies the fields that should be displayed in the form. If `fieldsets` is provided, `fields` will be ignored.
 
 ```python
-fields = ["field1", ("field2", "field3")]
+class Meta:
+    fields = ["field1", ("field2", "field3")]
 ```
 
 #### _def_ get_fields(<i>request</i>)
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fields">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fields">
     <code>ModelAdmin.get_fields()</code>
 </a>
 
@@ -465,7 +566,7 @@ class Meta:
 
 #### fieldsets
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.fieldsets">
     <code>ModelAdmin.fieldsets</code>
 </a>
 
@@ -474,27 +575,28 @@ Default: `None`
 If both `fields` and `fieldsets` are provided, `fieldsets` will be used.
 
 ```python
-fieldsets = [
-    (
-        None,
-        {
-            "fields": ["field1", "field2", ("field3", "field4")],
-        },
-    ),
-    (
-        "Fieldset 2",
-        {
-            "classes": ["collapse"],
-            "fields": ["field5", ("field6", "field7")],
-            "description": "This is a description for fieldset 2",
-        },
-    ),
-]
+class Meta:
+    fieldsets = [
+        (
+            None,
+            {
+                "fields": ["field1", "field2", ("field3", "field4")],
+            },
+        ),
+        (
+            "Fieldset 2",
+            {
+                "classes": ["collapse"],
+                "fields": ["field5", ("field6", "field7")],
+                "description": "This is a description for fieldset 2",
+            },
+        ),
+    ]
 ```
 
 #### _def_ get_fieldsets(<i>request</i>)
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fieldsets">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_fieldsets">
     <code>ModelAdmin.get_fieldsets()</code>
 </a>
 
@@ -538,7 +640,7 @@ class Meta:
 
 #### filter_horizontal
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_horizontal">
     <code>ModelAdmin.filter_horizontal</code>
 </a>
 
@@ -547,12 +649,13 @@ Default: `None`
 Sets fields that should use horizontal filter widget. It should be a list of field names.
 
 ```python
-filter_horizontal = ["field1", "field2"]
+class Meta:
+    filter_horizontal = ["tags"]
 ```
 
 #### filter_vertical
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_vertical">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.filter_vertical">
     <code>ModelAdmin.filter_vertical</code>
 </a>
 
@@ -561,12 +664,13 @@ Default: `None`
 Sets fields that should use vertical filter widget. It should be a list of field names.
 
 ```python
-filter_vertical = ["field1", "field2"]
+class Meta:
+    filter_vertical = ["tags"]
 ```
 
 #### autocomplete_fields
 
-> Works similar to <a href="https://docs.djangoproject.com/en/5.1/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields">
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.autocomplete_fields">
     <code>ModelAdmin.autocomplete_fields</code>
 </a>
 
@@ -575,12 +679,76 @@ Default: `None`
 Sets fields that should use autocomplete widget. It should be a list of field names.
 
 ```python
-autocomplete_fields = ["field1", "field2"]
+class Meta:
+    autocomplete_fields = ["employee"]
 ```
 
 > [!NOTE]
 > Autocomplete requires including `'django_admin_action_forms.urls'` in your `urls.py` file.
 > See [🔌 Installation](#-installation).
+
+#### radio_fields
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.radio_fields">
+    <code>ModelAdmin.radio_fields</code>
+</a>
+
+Default: `{}`
+
+Sets fields that should use a radio-button interface.
+You have the choice of using `HORIZONTAL` or `VERTICAL` from the django.contrib.admin module.
+Don’t include a field in `radio_fields` unless it’s a `ChoiceField` or its subclass.
+
+```python
+class Meta:
+    radio_fields = {
+        "field1": admin.HORIZONTAL,
+        "field2": admin.VERTICAL,
+    }
+```
+
+#### inlines
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.inlines">
+    <code>ModelAdmin.inlines</code>
+</a>
+
+> _Added in version 2.1.0_
+
+Default: `[]`
+
+Sets inlines that should used in the form.
+It should be a list of classes based on `StackedAdminActionInline` or `TabularAdminActionInline`.
+
+```python
+class Meta:
+    inlines = [
+        CustomAdminActionInline,
+    ]
+```
+
+#### _def_ get_inlines(<i>request</i>)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.ModelAdmin.get_inlines">
+    <code>ModelAdmin.get_inlines()</code>
+</a>
+
+> _Added in version 2.1.0_
+
+Method that can be used to dynamically determine inlines that should be used in the form.
+Should return a list of classes based on `StackedAdminActionInline` or `TabularAdminActionInline`.
+
+```python
+class Meta:
+
+    def get_inlines(self, request):
+        if request.user.is_superuser:
+            return [
+                CustomAdminActionInline
+            ]
+        else:
+            return []
+```
 
 #### confirm_button_text
 
@@ -593,7 +761,8 @@ Text displayed on the confirm button. It can be either a `str` or a lazy transla
 ```python
 from django.utils.translation import gettext_lazy as _
 
-confirm_button_text = _("Proceed")
+class Meta:
+    confirm_button_text = _("Proceed")
 ```
 
 #### cancel_button_text
@@ -607,5 +776,176 @@ Text displayed on the cancel button. It can be either a `str` or a lazy translat
 ```python
 from django.utils.translation import gettext_lazy as _
 
-cancel_button_text = _("Abort")
+class Meta:
+    cancel_button_text = _("Abort")
 ```
+
+### _class_ InlineActionForm
+### _class_ InlineAdminActionForm
+
+> _Added in version 2.1.0_
+
+Version of `ActionForm` and `AdminActionForm` that is used for inlines. Supports all of the features of `ActionForm` and selected `Meta` options.
+
+Because some `Meta` options like `list_objects` or `help_text` do not make sense in the context of inlines, they do nothing.
+That said, you can still use e.g. `fields`, `filter_horizontal`, or `autocomplete_fields`.
+
+```python
+class CustomInlineActionForm(InlineActionForm):
+
+    field1 = forms.ChoiceField(
+        label="Field 1",
+        choices=[(1, "Option 1"), (2, "Option 2"), (3, "Option 3")],
+    )
+    field2 = forms.CharField(
+        label="Field 2",
+        required=False,
+        widget=forms.TextInput
+    )
+    field3 = forms.DateField(label="Field 3", initial="2024-07-15")
+
+    ...
+```
+
+### _class_ InlineAdminActionFormSet
+### _class_ StackedAdminActionInline
+### _class_ TabularAdminActionInline
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin">
+    <code>InlineModelAdmin</code>
+</a>
+
+> _Added in version 2.1.0_
+
+Class that defines the layout of inline formset as well as its other options not directly related to the form.
+All subclasses of `InlineAdminActionFormSet` should have `prefix` and `form` defined, all other attributes are optional.
+
+```python
+class CustomAdminActionInline(StackedAdminActionInline):
+    name = "something"
+    form = CustomActionInlineForm
+
+    verbose_name = "..."
+    verbose_name_plural = "..."
+
+    extra = 3
+    min_num = 1
+    max_num = 5
+
+    classes = ["collapse"]
+
+    initial = [
+        {"field1": ..., "field2": ...},
+        {"field1": ..., "field2": ...},
+    ]
+```
+
+#### name
+
+A string used internally by the formset. It should be a valid python identifier, and when using multiple inlines inside one action form, each inline should have a unique `name`. It is used as a key in `data` dictionary that is passed to the action.
+This is required.
+
+#### form
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.model">
+    <code>InlineModelAdmin.model</code>
+</a>
+
+Form used in the formset. It should be a subclass of `InlineAdminActionForm` or `InlineActionForm`.
+This is required.
+
+#### extra
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.extra">
+    <code>InlineModelAdmin.extra</code>
+</a>
+
+Default: `1`
+
+Number of extra forms the formset will display in addition to the initial forms.
+
+#### _def_ get_extra(<i>request</i>)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.get_extra">
+    <code>InlineModelAdmin.get_extra()</code>
+</a>
+
+Returns the number of extra inline forms to use. By default, returns the `InlineAdminActionFormSet.extra` attribute.
+
+Override this method to programmatically determine the number of extra inline forms.
+
+#### min_num
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.min_num">
+    <code>InlineModelAdmin.min_num</code>
+</a>
+
+Default: `0`
+
+Minimum number of forms to show in the inline.
+
+#### _def_ get_min_num(<i>request</i>)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.get_min_num">
+    <code>InlineModelAdmin.get_min_num()</code>
+</a>
+
+Returns the minimum number of inline forms to use. By default, returns the `InlineAdminActionFormSet.min_num` attribute.
+
+Override this method to programmatically determine the minimum number of inline forms.
+
+#### max_num
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.max_num">
+    <code>InlineModelAdmin.max_num</code>
+</a>
+
+Default: `1000`
+
+Maximum number of forms to show in the inline.
+
+#### _def_ get_max_num(<i>request</i>)
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.get_max_num">
+    <code>InlineModelAdmin.get_max_num()</code>
+</a>
+
+Returns the maximum number of extra inline forms to use. By default, returns the `InlineAdminActionFormSet.max_num` attribute.
+
+Override this method to programmatically determine the maximum number of inline forms.
+
+#### verbose_name
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.verbose_name">
+    <code>InlineModelAdmin.verbose_name</code>
+</a>
+
+Used in inline template to display the name of the formset. It should be a string or a lazy translation. By default it uses the `InlineAdminActionFormSet.prefix` attribute.
+
+#### verbose_name_plural
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.verbose_name_plural">
+    <code>InlineModelAdmin.verbose_name_plural</code>
+</a>
+
+If this isn’t given and the `InlineAdminActionFormSet.verbose_name` is defined, it will be set to `InlineAdminActionFormSet.verbose_name` + `'s'`.
+
+#### classes
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/ref/contrib/admin/#django.contrib.admin.InlineModelAdmin.classes">
+    <code>InlineModelAdmin.classes</code>
+</a>
+
+Default: `[]`
+
+A list or tuple containing extra CSS classes to apply to the fieldset that is rendered for the inlines. As with classes configured in `ModelAdmin.fieldsets`, inlines with a `"collapse"` class will be initially collapsed using an expandable widget.
+
+#### initial
+
+> Works similar to <a href="https://docs.djangoproject.com/en/5.2/topics/forms/formsets/#using-initial-data-with-a-formset">
+    <code>FormSet.initial</code>
+</a>
+
+Default: `None`
+
+List of dictionaries used to prepopulate the formset with initial data. Each dictionary should contain the same keys as the fields in the formset.

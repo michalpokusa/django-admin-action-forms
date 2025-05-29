@@ -29,18 +29,17 @@ except ImportError:
         return supported_code
 
 
-class RenderInsideDivMixin(Widget):
+class WrapWidgetInDivForSelect2Mixin(Widget):
     """
-    Renders the original widget inside a div element.
-
-    Simulates `RelatedFieldWidgetWrapper`, as Select2 expects a parent div element.
+    Wraps the widget in a div element, imitating the behavior
+    of `django.contrib.admin.widgets.RelatedFieldWidgetWrapper`, as Select2 expects a parent div element.
     """
 
     def render(self, *args, **kwargs):
         rendered_widget = super().render(*args, **kwargs)
 
         return format_html(
-            f'<div class="related-widget-wrapper">{rendered_widget}</div>'
+            '<div class="related-widget-wrapper">{}</div>', rendered_widget
         )
 
 
@@ -136,20 +135,22 @@ class ActionFormAutocompleteMixin(Widget):
         )
 
 
-class FilterHorizontalWidget(RenderInsideDivMixin, FilteredSelectMultiple): ...
+class FilterHorizontalWidget(
+    WrapWidgetInDivForSelect2Mixin, FilteredSelectMultiple
+): ...
 
 
-class FilterVerticalWidget(RenderInsideDivMixin, FilteredSelectMultiple): ...
+class FilterVerticalWidget(WrapWidgetInDivForSelect2Mixin, FilteredSelectMultiple): ...
 
 
 class AutocompleteModelChoiceWidget(
-    ActionFormAutocompleteMixin, RenderInsideDivMixin, Select
+    ActionFormAutocompleteMixin, WrapWidgetInDivForSelect2Mixin, Select
 ): ...
 
 
 class AutocompleteModelMultiChoiceWidget(
-    ActionFormAutocompleteMixin, RenderInsideDivMixin, SelectMultiple
+    ActionFormAutocompleteMixin, WrapWidgetInDivForSelect2Mixin, SelectMultiple
 ): ...
 
 
-class RadioFieldsWidget(RenderInsideDivMixin, RadioSelect): ...
+class RadioFieldsWidget(RadioSelect): ...

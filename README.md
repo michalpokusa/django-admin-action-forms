@@ -47,6 +47,7 @@ Simple and powerful!
 - No additional dependencies
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
 - Works with custom widgets, validators and other Django form features
+- Formset support using inlines known from Django admin
 - Easy to test using Django's testing tools
 - Compatible with [django-no-queryset-admin-actions](https://pypi.org/project/django-no-queryset-admin-actions/)
 
@@ -698,7 +699,7 @@ class Meta:
 Default: `{}`
 
 Sets fields that should use a radio-button interface.
-You have the choice of using `HORIZONTAL` or `VERTICAL` from the django.contrib.admin module.
+You have the choice of using `HORIZONTAL` or `VERTICAL` from the `django.contrib.admin` module.
 Don’t include a field in `radio_fields` unless it’s a `ChoiceField` or its subclass.
 
 ```python

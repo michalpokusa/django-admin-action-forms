@@ -247,6 +247,7 @@ class ActionForm(Form):
             "model_verbose_name_plural": self.modeladmin.opts.verbose_name_plural,
             "help_text": self.opts.help_text,
             "list_objects": self.opts.list_objects,
+            "include_summary": self.opts.include_summary,
             "queryset": self.queryset,
             "form": self,
             "fieldsets": self.fieldsets,
@@ -265,6 +266,7 @@ class ActionForm(Form):
 
         class Meta:
             list_objects: bool
+            include_summary: bool
             help_text: "str | None"
 
             fields: "list[str | tuple[str, ...]] | None"

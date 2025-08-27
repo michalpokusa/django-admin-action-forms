@@ -35,14 +35,16 @@
     {% endblock help_text %}
 
     {% block objects_list %}
-        {% if list_objects %}
+        {% if objects_summary %}
             <h2>{% translate "Summary" %}</h2>
             <ul>
                 <li>
                     {{ model_verbose_name_plural|capfirst }}: {{ queryset|length }}</a>
                 </li>
             </ul>
-
+        {% endif %}
+    
+        {% if list_objects %}
             <h2>{% translate "Objects" %}</h2>
             <ul>
                 {% for object in queryset %}

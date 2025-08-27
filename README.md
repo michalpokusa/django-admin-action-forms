@@ -349,6 +349,7 @@ class ShopProductsTests(TestCase):
 - [`AdminActionForm`](#class-adminactionform)
 - [`ActionForm.Meta`](#class-actionformmeta)
   - [`list_objects`](#list_objects)
+  - [`objects_summary`](#objects_summary)
   - [`help_text`](#help_text)
   - [`fields`](#fields)
   - [`get_fields()`](#def-get_fieldsrequest)
@@ -519,6 +520,35 @@ to the intermediate page for built-in `delete_selected` action.
 ```python
 class Meta:
     list_objects = True
+```
+
+#### objects_summary
+
+Default: `True` if `list_objects` is `True`, otherwise `False`
+
+If `True`, the intermediate page will display a summary section showing the count of objects that will be affected by the action.
+When `list_objects` is `True`, `objects_summary` defaults to `True` unless explicitly overridden.
+
+```python
+# Show both summary and individual objects (default behavior when list_objects=True)
+class Meta:
+    list_objects = True
+    # objects_summary defaults to True
+
+# Show only individual objects without summary
+class Meta:
+    list_objects = True
+    objects_summary = False
+
+# Show only summary without individual objects
+class Meta:
+    list_objects = False
+    objects_summary = True
+
+# Show neither summary nor objects
+class Meta:
+    list_objects = False
+    objects_summary = False
 ```
 
 #### help_text

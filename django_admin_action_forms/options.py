@@ -12,6 +12,7 @@ from .formsets import InlineAdminActionFormSet
 class Options:
 
     list_objects: bool
+    objects_summary: bool
     help_text: "str | None"
     fields: "list[str | tuple[str, ...]] | None"
     fieldsets: "list[tuple[str|None, dict[str, list[str | tuple[str, ...]]]]] | None"
@@ -28,6 +29,14 @@ class Options:
         self._meta = form.Meta() if hasattr(form, "Meta") else None
 
         self.list_objects = getattr(self._meta, "list_objects", False)
+
+        # If objects_summary is explicitly set, use that value
+        # Otherwise, default to True if list_objects is True, False if list_objects is False
+        if hasattr(self._meta, "objects_summary"):
+            self.objects_summary = self._meta.objects_summary
+        else:
+            self.objects_summary = self.list_objects
+
         self.help_text = getattr(self._meta, "help_text", None)
         self.fields = getattr(self._meta, "fields", None)
         self.fieldsets = getattr(self._meta, "fieldsets", None)

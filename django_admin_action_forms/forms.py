@@ -30,6 +30,7 @@ from django.forms import (
     IntegerField,
     ModelChoiceField,
     ModelMultipleChoiceField,
+    RadioSelect,
     SplitDateTimeField,
     TimeField,
     URLField,
@@ -45,12 +46,10 @@ from django.utils.translation import gettext_lazy
 
 from .options import Options
 from .widgets import (
-    FilterHorizontalWidget,
-    FilterVerticalWidget,
-    ActionFormAutocompleteMixin,
-    AutocompleteModelChoiceWidget,
-    AutocompleteModelMultiChoiceWidget,
-    RadioFieldsWidget,
+    FilterHorizontalSelectMultiple,
+    FilterVerticalSelectMultiple,
+    AutocompleteSelect,
+    AutocompleteSelectMultiple,
 )
 
 
@@ -111,7 +110,7 @@ class ActionForm(Form):
         for field_name, field in self.fields.items():
             if field_name in filter_horizontal:
                 if isinstance(field, ModelMultipleChoiceField):
-                    field.widget = FilterHorizontalWidget(
+                    field.widget = FilterHorizontalSelectMultiple(
                         verbose_name=field.get_bound_field(self, field_name).label,
                         is_stacked=False,
                         choices=field.choices,
@@ -119,7 +118,7 @@ class ActionForm(Form):
 
             if field_name in filter_vertical:
                 if isinstance(field, ModelMultipleChoiceField):
-                    field.widget = FilterVerticalWidget(
+                    field.widget = FilterVerticalSelectMultiple(
                         verbose_name=field.get_bound_field(self, field_name).label,
                         is_stacked=True,
                         choices=field.choices,
@@ -133,12 +132,12 @@ class ActionForm(Form):
         for field_name, field in self.fields.items():
             if field_name in autocomplete_fields:
                 if isinstance(field, ModelChoiceField):
-                    field.widget = AutocompleteModelChoiceWidget(
+                    field.widget = AutocompleteSelect(
                         choices=field.choices,
                     )
 
                 if isinstance(field, ModelMultipleChoiceField):
-                    field.widget = AutocompleteModelMultiChoiceWidget(
+                    field.widget = AutocompleteSelectMultiple(
                         choices=field.choices,
                     )
 
@@ -149,7 +148,7 @@ class ActionForm(Form):
         for field_name, field in self.fields.items():
             if field_name in radio_fields:
                 if isinstance(field, ChoiceField):
-                    field.widget = RadioFieldsWidget(
+                    field.widget = RadioSelect(
                         attrs={"class": get_ul_class(radio_fields[field_name])},
                         choices=field.choices,
                     )
@@ -163,7 +162,7 @@ class ActionForm(Form):
                 and field.widget.allow_multiple_selected
                 and not isinstance(
                     field.widget,
-                    (CheckboxSelectMultiple, AutocompleteModelMultiChoiceWidget),
+                    (CheckboxSelectMultiple, AutocompleteSelectMultiple),
                 )
             ):
                 msg = gettext_lazy(
@@ -176,7 +175,9 @@ class ActionForm(Form):
 
     def _add_autocomplete_widget_attrs(self) -> None:
         for field_name, field in self.fields.items():
-            if isinstance(field.widget, ActionFormAutocompleteMixin):
+            if isinstance(
+                field.widget, (AutocompleteSelect, AutocompleteSelectMultiple)
+            ):
                 field.widget.attrs.update(
                     {
                         "data-admin-site": self.modeladmin.admin_site.name,
@@ -228,7 +229,7 @@ class ActionForm(Form):
     @property
     def inlines_cleaned_data(self):
         return {
-            f"{inline.name}": [data for data in inline.cleaned_data if data]
+            inline.name: [data for data in inline.cleaned_data if data]
             for inline in self.inlines
         }
 
@@ -340,8 +341,10 @@ class InlineActionForm(ActionForm):
 
     def _add_autocomplete_widget_attrs(self):
         super()._add_autocomplete_widget_attrs()
-        for field_name, field in self.fields.items():
-            if isinstance(field.widget, ActionFormAutocompleteMixin):
+        for field in self.fields.values():
+            if isinstance(
+                field.widget, (AutocompleteSelect, AutocompleteSelectMultiple)
+            ):
                 field.widget.attrs["data-inline-name"] = self.formset.name
 
 

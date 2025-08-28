@@ -2,7 +2,7 @@ import json
 from typing import Any
 
 from django.conf import settings
-from django.forms import Select, SelectMultiple, Media, Widget, RadioSelect
+from django.forms import Select, SelectMultiple, Media, Widget
 from django.urls import reverse
 from django.utils.html import format_html
 from django.contrib.admin.widgets import FilteredSelectMultiple
@@ -135,22 +135,21 @@ class ActionFormAutocompleteMixin(Widget):
         )
 
 
-class FilterHorizontalWidget(
+class FilterHorizontalSelectMultiple(
     WrapWidgetInDivForSelect2Mixin, FilteredSelectMultiple
 ): ...
 
 
-class FilterVerticalWidget(WrapWidgetInDivForSelect2Mixin, FilteredSelectMultiple): ...
+class FilterVerticalSelectMultiple(
+    WrapWidgetInDivForSelect2Mixin, FilteredSelectMultiple
+): ...
 
 
-class AutocompleteModelChoiceWidget(
+class AutocompleteSelect(
     ActionFormAutocompleteMixin, WrapWidgetInDivForSelect2Mixin, Select
 ): ...
 
 
-class AutocompleteModelMultiChoiceWidget(
+class AutocompleteSelectMultiple(
     ActionFormAutocompleteMixin, WrapWidgetInDivForSelect2Mixin, SelectMultiple
 ): ...
-
-
-class RadioFieldsWidget(RadioSelect): ...

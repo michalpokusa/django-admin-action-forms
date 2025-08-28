@@ -29,14 +29,7 @@ class Options:
         self._meta = form.Meta() if hasattr(form, "Meta") else None
 
         self.list_objects = getattr(self._meta, "list_objects", False)
-
-        # If objects_summary is explicitly set, use that value
-        # Otherwise, default to True if list_objects is True, False if list_objects is False
-        if hasattr(self._meta, "objects_summary"):
-            self.objects_summary = self._meta.objects_summary
-        else:
-            self.objects_summary = self.list_objects
-
+        self.objects_summary = getattr(self._meta, "objects_summary", self.list_objects)
         self.help_text = getattr(self._meta, "help_text", None)
         self.fields = getattr(self._meta, "fields", None)
         self.fieldsets = getattr(self._meta, "fieldsets", None)

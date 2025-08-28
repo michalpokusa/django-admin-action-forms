@@ -524,6 +524,8 @@ class Meta:
 
 #### objects_summary
 
+> _Added in version 2.2.0_
+
 Default: `True` if `list_objects` is `True`, otherwise `False`
 
 If `True`, the intermediate page will display a summary section showing the count of objects that will be affected by the action.

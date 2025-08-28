@@ -28,9 +28,7 @@ jobs:
         run: django-admin compilemessages --ignore "**/django/**"
 
       - name: Build package
-        env:
-          PACKAGE_VERSION: ${{ github.ref_name }}
-        run: bash build-package.sh
+        run: python3 -m build
 
       - name: Publish to PyPI
         env:

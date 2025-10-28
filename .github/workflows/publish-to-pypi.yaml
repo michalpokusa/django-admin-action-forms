@@ -9,6 +9,9 @@ jobs:
   build-and-publish-to-pypi:
     name: Build and Publish to PyPI
     runs-on: ubuntu-latest
+    permissions:
+      # IMPORTANT: this permission is mandatory for Trusted Publishing
+      id-token: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -22,7 +25,7 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y gettext
-          python3 -m pip install --upgrade pip django build twine
+          python3 -m pip install --upgrade pip django build
 
       - name: Compile .po files to .mo
         run: django-admin compilemessages --ignore "**/django/**"
@@ -31,7 +34,4 @@ jobs:
         run: python3 -m build
 
       - name: Publish to PyPI
-        env:
-          TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-          TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-        run: twine upload --non-interactive dist/*
+        uses: pypa/gh-action-pypi-publish@ab69e431e9c9f48a3310be0a56527c679f56e04d

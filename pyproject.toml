@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "django-admin-action-forms"
-version = "2.2.0"
+version = "2.2.1"
 description = "Extension for the Django admin panel that allows passing additional parameters to actions by creating intermediate pages with forms."
 readme = "README.md"
 license-files = ["LICENSE"]

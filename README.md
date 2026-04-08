@@ -152,7 +152,7 @@ Let's create an action that will change the status of selected `Order` to a valu
 from django import forms
 from django.contrib import admin
 
-from django_admin_action_forms import action_with_form, AdminActionForm
+from django_admin_action_forms import AdminActionFormsMixin, AdminActionForm, action_with_form
 
 from .models import Order
 

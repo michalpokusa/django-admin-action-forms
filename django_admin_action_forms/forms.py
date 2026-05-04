@@ -40,6 +40,7 @@ from django.forms import (
 from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
@@ -180,11 +181,16 @@ class ActionForm(Form):
             ):
                 field.widget.attrs.update(
                     {
-                        "data-admin-site": self.modeladmin.admin_site.name,
-                        "data-app-label": self.modeladmin.opts.app_config.label,
-                        "data-model-name": self.modeladmin.opts.model_name,
                         "data-action-name": self.action,
                         "data-field-name": field_name,
+                        "data-ajax--url": reverse(
+                            "%s:%s_%s_action_form_autocomplete"
+                            % (
+                                self.modeladmin.admin_site.name,
+                                self.modeladmin.opts.app_label,
+                                self.modeladmin.opts.model_name,
+                            )
+                        ),
                     }
                 )
 

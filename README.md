@@ -67,35 +67,6 @@ Simple and powerful!
     ]
     ```
 
-3. Include `'django_admin_action_forms.urls'` in your `urls.py` file. This is needed only if you want to use autocomplete.
-
-    If you want to include them under the same path as admin site, make sure to place them **before** the admin URLs.
-
-    ```python
-    from django.contrib import admin
-    from django.urls import path, include
-
-
-    urlpatterns = [
-        path("admin/action-forms/", include("django_admin_action_forms.urls")),
-        path("admin/", admin.site.urls),
-        ...
-    ]
-    ```
-    ...or include them under any other path.
-
-    ```python
-    from django.contrib import admin
-    from django.urls import path, include
-
-
-    urlpatterns = [
-        path("admin/", admin.site.urls),
-        ...
-        path("any/other/path/", include("django_admin_action_forms.urls")),
-    ]
-    ```
-
 ## ✏️ Examples
 
 ### Simple confirm form

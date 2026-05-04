@@ -49,6 +49,9 @@ class InlineFieldDict(TypedDict):
 
 
 class InlineAdminActionFormSet(BaseFormSet, RenderableMixin):
+    """
+    Combines logic of `django.forms.formsets.BaseFormSet` and `django.contrib.admin.options.InlineModelAdmin`
+    """
 
     name: str
     form: "type[InlineActionForm]"

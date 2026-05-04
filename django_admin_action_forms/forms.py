@@ -340,7 +340,6 @@ class AdminActionForm(ActionForm):
 
 
 class InlineActionForm(ActionForm):
-
     def __init__(self, formset: "InlineAdminActionFormSet", *args, **kwargs):
         self.formset = formset
         super().__init__(*args, **kwargs)

@@ -853,7 +853,7 @@ class CustomInlineActionForm(InlineActionForm):
 > _Added in version 2.1.0_
 
 Class that defines the layout of inline formset as well as its other options not directly related to the form.
-All subclasses of `InlineAdminActionFormSet` should have `prefix` and `form` defined, all other attributes are optional.
+All subclasses of `InlineAdminActionFormSet` should have `name` and `form` defined, all other attributes are optional.
 
 ```python
 class CustomAdminActionInline(StackedAdminActionInline):
@@ -955,7 +955,7 @@ Override this method to programmatically determine the maximum number of inline 
     <code>InlineModelAdmin.verbose_name</code>
 </a>
 
-Used in inline template to display the name of the formset. It should be a string or a lazy translation. By default it uses the `InlineAdminActionFormSet.prefix` attribute.
+Used in inline template to display the name of the formset. It should be a string or a lazy translation. By default it uses the `InlineAdminActionFormSet.name` attribute.
 
 #### verbose_name_plural
 

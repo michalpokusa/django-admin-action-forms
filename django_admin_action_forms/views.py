@@ -1,11 +1,10 @@
 from django.contrib.admin import ModelAdmin
-from django.db.models import Model
-from django.db.models import QuerySet
+from django.db.models import Model, QuerySet
 from django.forms import Field, ModelChoiceField, ModelMultipleChoiceField
 from django.http import (
     HttpRequest,
-    HttpResponseForbidden,
     HttpResponseBadRequest,
+    HttpResponseForbidden,
     JsonResponse,
 )
 from django.views.generic.list import BaseListView
@@ -21,7 +20,7 @@ class ActionFormAutocompleteJsonView(BaseListView):
     """
 
     paginate_by: int = 20
-    model_admin: ModelAdmin
+    model_admin: "ModelAdmin | None" = None
 
     def _get_field_by_name(
         self,
@@ -58,6 +57,11 @@ class ActionFormAutocompleteJsonView(BaseListView):
 
         Returned objects are filtered from `queryset` specified on field and restricted by the `limit_choices_to` attribute.
         """
+        if self.model_admin is None:
+            raise ValueError(
+                "model_admin attribute must be set to a ModelAdmin instance."
+            )
+
         if not request.user.is_staff:
             return HttpResponseForbidden()
 

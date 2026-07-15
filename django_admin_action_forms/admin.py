@@ -6,7 +6,6 @@ except ImportError:
         return func
 
 
-from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import ActionForm
 from django.forms import CharField, HiddenInput
 from django.http import HttpRequest
@@ -16,7 +15,7 @@ from django.urls import path
 from .views import ActionFormAutocompleteJsonView
 
 
-class AdminActionFormsMixin(ModelAdmin):
+class AdminActionFormsMixin:
     @override
     def get_urls(self):
         return [

@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## [3.0.0] - 2026-08-06
+
+### Added
+
+- Support for Django 6.x.x
+
+### Changed
+
+- `AdminActionFormsMixin` no longer inherits `ModelAdmin`, and as a result all model admin classes that use `@action_with_form` decorator must inherit both `AdminActionFormsMixin` and `ModelAdmin` class
+
+### Removed
+
+- Including `'django_admin_action_forms.urls'` in the project's urls is no longer required
+
 ## [2.2.0] - 2025-08-28
 
 ### Added
@@ -93,6 +107,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2024-08-02
 
 
+[3.0.0]: https://github.com/michalpokusa/django-admin-action-forms/compare/2.2.0...3.0.0
 [2.2.0]: https://github.com/michalpokusa/django-admin-action-forms/compare/2.1.0...2.2.0
 [2.1.0]: https://github.com/michalpokusa/django-admin-action-forms/compare/2.0.0...2.1.0
 [2.0.0]: https://github.com/michalpokusa/django-admin-action-forms/compare/1.3.0...2.0.0

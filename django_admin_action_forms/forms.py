@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .formsets import InlineAdminActionFormSet
 
+from django import VERSION as DJANGO_VERSION
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
 from django.contrib.admin.options import get_ul_class
@@ -47,10 +48,10 @@ from django.utils.translation import gettext_lazy
 
 from .options import Options
 from .widgets import (
-    FilterHorizontalSelectMultiple,
-    FilterVerticalSelectMultiple,
     AutocompleteSelect,
     AutocompleteSelectMultiple,
+    FilterHorizontalSelectMultiple,
+    FilterVerticalSelectMultiple,
 )
 
 
@@ -264,6 +265,7 @@ class ActionForm(Form):
             "selected_action": request.POST.getlist("_selected_action"),
             "confirm_button_text": self.opts.confirm_button_text,
             "cancel_button_text": self.opts.cancel_button_text,
+            "django_version_above_6_1_x": (6, 1) <= DJANGO_VERSION,
             **(extra_context or {}),
         }
 

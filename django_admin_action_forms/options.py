@@ -10,7 +10,6 @@ from .formsets import InlineAdminActionFormSet
 
 
 class Options:
-
     list_objects: bool
     objects_summary: bool
     help_text: "str | None"

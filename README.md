@@ -6,7 +6,7 @@
         <img src="https://img.shields.io/pypi/v/django-admin-action-forms?color=0073b7"/>
     </a>
     <a href="https://www.djangoproject.com/">
-        <img src="https://img.shields.io/badge/3.2.x, 4.x.x, 5.x.x-a?style=flat&logo=django&label=django&labelColor=0c4b33&color=616161">
+        <img src="https://img.shields.io/badge/3.2.x--6.x.x-a?style=flat&logo=django&label=django&labelColor=0c4b33&color=616161">
     </a>
 </p>
 
@@ -64,35 +64,6 @@ Simple and powerful!
     INSTALLED_APPS = [
         ...
         'django_admin_action_forms',
-    ]
-    ```
-
-3. Include `'django_admin_action_forms.urls'` in your `urls.py` file. This is needed only if you want to use autocomplete.
-
-    If you want to include them under the same path as admin site, make sure to place them **before** the admin URLs.
-
-    ```python
-    from django.contrib import admin
-    from django.urls import path, include
-
-
-    urlpatterns = [
-        path("admin/action-forms/", include("django_admin_action_forms.urls")),
-        path("admin/", admin.site.urls),
-        ...
-    ]
-    ```
-    ...or include them under any other path.
-
-    ```python
-    from django.contrib import admin
-    from django.urls import path, include
-
-
-    urlpatterns = [
-        path("admin/", admin.site.urls),
-        ...
-        path("any/other/path/", include("django_admin_action_forms.urls")),
     ]
     ```
 
@@ -853,7 +824,7 @@ class CustomInlineActionForm(InlineActionForm):
 > _Added in version 2.1.0_
 
 Class that defines the layout of inline formset as well as its other options not directly related to the form.
-All subclasses of `InlineAdminActionFormSet` should have `prefix` and `form` defined, all other attributes are optional.
+All subclasses of `InlineAdminActionFormSet` should have `name` and `form` defined, all other attributes are optional.
 
 ```python
 class CustomAdminActionInline(StackedAdminActionInline):
@@ -955,7 +926,7 @@ Override this method to programmatically determine the maximum number of inline 
     <code>InlineModelAdmin.verbose_name</code>
 </a>
 
-Used in inline template to display the name of the formset. It should be a string or a lazy translation. By default it uses the `InlineAdminActionFormSet.prefix` attribute.
+Used in inline template to display the name of the formset. It should be a string or a lazy translation. By default it uses the `InlineAdminActionFormSet.name` attribute.
 
 #### verbose_name_plural
 

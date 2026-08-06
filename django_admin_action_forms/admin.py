@@ -1,14 +1,33 @@
-from typing import Any
+try:
+    from typing import Any, override
+except ImportError:
 
-from django.contrib.admin import ModelAdmin
+    def override(func):
+        return func
+
+
 from django.contrib.admin.helpers import ActionForm
 from django.forms import CharField, HiddenInput
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
+from django.urls import path
+
+from .views import ActionFormAutocompleteJsonView
 
 
-class AdminActionFormsMixin(ModelAdmin):
+class AdminActionFormsMixin:
+    @override
+    def get_urls(self):
+        return [
+            path(
+                "action-form-autocomplete/",
+                ActionFormAutocompleteJsonView.as_view(model_admin=self),
+                name="%s_%s_action_form_autocomplete"
+                % (self.opts.app_label, self.opts.model_name),
+            ),
+        ] + super().get_urls()
 
+    @override
     def changelist_view(
         self, request: HttpRequest, extra_context: "dict[str, Any] | None" = None
     ):

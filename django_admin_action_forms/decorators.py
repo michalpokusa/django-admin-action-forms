@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from functools import wraps
 
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ModelAdmin, action
 from django.db.models import QuerySet
 from django.http import HttpRequest, HttpResponse
 
@@ -19,10 +19,8 @@ def action_with_form(
     """
 
     def decorator(action_function: "Callable[..., None | HttpResponse]"):
-
         @wraps(action_function)
         def wrapper(*args):
-
             # Compatibility with django-no-queryset-admin-actions
             modeladmin: ModelAdmin = args[0]
             request: HttpRequest = args[1]
@@ -37,14 +35,14 @@ def action_with_form(
             except ValueError:
                 action_index = 0
 
-            action = request.POST.getlist("action")[action_index]
+            action_name = request.POST.getlist("action")[action_index]
 
             form = (
-                form_class(modeladmin, action, request, queryset)
+                form_class(modeladmin, action_name, request, queryset)
                 if request.POST.get("submitted_from_changelist_view", "0") == "1"
                 else form_class(
                     modeladmin,
-                    action,
+                    action_name,
                     request,
                     queryset,
                     data=request.POST,
@@ -64,12 +62,6 @@ def action_with_form(
 
         setattr(wrapper, "form_class", form_class)
 
-        if permissions is not None:
-            setattr(wrapper, "allowed_permissions", permissions)
-
-        if description is not None:
-            setattr(wrapper, "short_description", description)
-
-        return wrapper
+        return action(wrapper, permissions=permissions, description=description)
 
     return decorator

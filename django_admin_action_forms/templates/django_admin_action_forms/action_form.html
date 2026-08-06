@@ -8,6 +8,9 @@
     <script src="{% static 'admin/js/core.js' %}" ></script>
     <script src="{% static 'admin/js/cancel.js' %}" ></script>
     {{ form.media }}
+    {% if django_version_above_6_1_x %}
+    <link rel="stylesheet" href="{% static "admin/css/widgets.css" %}">
+    {% endif %}
     <link rel="stylesheet" href="{% static 'admin/css/forms.css' %}">
     <link rel="stylesheet" href="{% static 'django_admin_action_forms/css/action_form.css' %}">
 {% endblock %}
@@ -17,12 +20,21 @@
 
 
 {% block breadcrumbs %}
+{% if django_version_above_6_1_x %}
+<ol class="breadcrumbs">
+    <li><a href="{% url 'admin:index' %}">{% translate 'Home' %}</a></li>
+    <li><a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_verbose_name }}</a></li>
+    <li><a href="{% url 'admin:'|add:app_label|add:'_'|add:model_name|add:'_changelist' %}">{{ model_verbose_name_plural|capfirst }}</a></li>
+    <li aria-current="page">{{ title }}</li>
+</ol>
+{% else %}
 <div class="breadcrumbs">
     <a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
     &rsaquo; <a href="{% url 'admin:app_list' app_label=app_label %}">{{ app_verbose_name }}</a>
     &rsaquo; <a href="{% url 'admin:'|add:app_label|add:'_'|add:model_name|add:'_changelist' %}">{{ model_verbose_name_plural|capfirst }}</a>
     &rsaquo; {{ title }}
 </div>
+{% endif %}
 {% endblock %}
 
 

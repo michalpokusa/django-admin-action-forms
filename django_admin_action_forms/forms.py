@@ -3,6 +3,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from .formsets import InlineAdminActionFormSet
 
+from django import VERSION as DJANGO_VERSION
 from django.contrib.admin import ModelAdmin
 from django.contrib.admin.helpers import Fieldset
 from django.contrib.admin.options import get_ul_class
@@ -40,16 +41,17 @@ from django.forms import (
 from django.forms.widgets import CheckboxSelectMultiple, SelectMultiple
 from django.http import HttpRequest
 from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils.functional import cached_property
 from django.utils.text import format_lazy
 from django.utils.translation import gettext_lazy
 
 from .options import Options
 from .widgets import (
-    FilterHorizontalSelectMultiple,
-    FilterVerticalSelectMultiple,
     AutocompleteSelect,
     AutocompleteSelectMultiple,
+    FilterHorizontalSelectMultiple,
+    FilterVerticalSelectMultiple,
 )
 
 
@@ -180,11 +182,16 @@ class ActionForm(Form):
             ):
                 field.widget.attrs.update(
                     {
-                        "data-admin-site": self.modeladmin.admin_site.name,
-                        "data-app-label": self.modeladmin.opts.app_config.label,
-                        "data-model-name": self.modeladmin.opts.model_name,
                         "data-action-name": self.action,
                         "data-field-name": field_name,
+                        "data-ajax--url": reverse(
+                            "%s:%s_%s_action_form_autocomplete"
+                            % (
+                                self.modeladmin.admin_site.name,
+                                self.modeladmin.opts.app_label,
+                                self.modeladmin.opts.model_name,
+                            )
+                        ),
                     }
                 )
 
@@ -258,6 +265,7 @@ class ActionForm(Form):
             "selected_action": request.POST.getlist("_selected_action"),
             "confirm_button_text": self.opts.confirm_button_text,
             "cancel_button_text": self.opts.cancel_button_text,
+            "django_version_above_6_1_x": (6, 1) <= DJANGO_VERSION,
             **(extra_context or {}),
         }
 
@@ -334,7 +342,6 @@ class AdminActionForm(ActionForm):
 
 
 class InlineActionForm(ActionForm):
-
     def __init__(self, formset: "InlineAdminActionFormSet", *args, **kwargs):
         self.formset = formset
         super().__init__(*args, **kwargs)

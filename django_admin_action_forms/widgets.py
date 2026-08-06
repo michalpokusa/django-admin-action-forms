@@ -2,10 +2,9 @@ import json
 from typing import Any
 
 from django.conf import settings
-from django.forms import Select, SelectMultiple, Media, Widget
-from django.urls import reverse
-from django.utils.html import format_html
 from django.contrib.admin.widgets import FilteredSelectMultiple
+from django.forms import Media, Select, SelectMultiple, Widget
+from django.utils.html import format_html
 
 # Django 4.1.x and above
 try:
@@ -62,7 +61,6 @@ class ActionFormAutocompleteMixin(Widget):
                 "data-ajax--cache": "true",
                 "data-ajax--delay": 250,
                 "data-ajax--type": "GET",
-                "data-ajax--url": reverse("django_admin_action_forms:autocomplete"),
                 "data-theme": "admin-autocomplete",
                 "data-allow-clear": json.dumps(not self.is_required),
                 "data-placeholder": "",

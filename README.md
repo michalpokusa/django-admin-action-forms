@@ -42,7 +42,7 @@ Simple and powerful!
 ### 🎉 Features
 
 - Requires minimal configuration, easy to use
-- Supports all modern Django versions (3.2.x, 4.x.x, 5.x.x)
+- Supports all modern Django versions (3.2.x-6.x.x)
 - Built on top of Django's templates and forms, matches the Django admin style
 - No additional dependencies
 - Supports `fields`/`fieldsets`, `filter_horizontal`/`filter_vertical` and `autocomplete_fields`
